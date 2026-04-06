@@ -1,0 +1,161 @@
+04/06 13:40:10 INFO: WandB logging disabled (environment variables not set)	[pipeline.py: 592]
+04/06 13:40:10 INFO: Starting house-by-house rollout of 1 houses with 1 episodes each (1 total episodes) using 1 worker processes	[pipeline.py: 1194]
+04/06 13:40:10 INFO: Evaluation configuration:	[pipeline.py: 1201]
+04/06 13:40:10 INFO: {'benchmark_path': PosixPath('/home/youngsun/simul/MolmoBot/MolmoBot/benchmarks/minimal_benchmark'),
+ 'camera_config': None,
+ 'collision_free_pose_limit': 3,
+ 'config_version': '0.1',
+ 'ctrl_dt_ms': 2.0,
+ 'data_split': 'val',
+ 'datagen_profiler': False,
+ 'end_on_success': False,
+ 'environment_light_intensity': 15000.0,
+ 'eval_runtime_params': {'add_custom_object': False,
+                         'custom_object_name': None,
+                         'custom_object_path': None,
+                         'episode_idx': None},
+ 'filter_for_successful_trajectories': False,
+ 'log_level': 'info',
+ 'num_envs': 1,
+ 'num_workers': 1,
+ 'output_dir': PosixPath('minimal_eval_results/FrankaState8ClampAbsPosConfig/20260406_134001'),
+ 'policy_config': {'action_horizon': 16,
+                   'action_keys': {'arm': 'joint_pos', 'gripper': 'joint_pos'},
+                   'action_move_group_names': ['arm', 'gripper'],
+                   'action_spec': {'arm': 7, 'gripper': 1},
+                   'action_type': 'joint_pos',
+                   'camera_names': ['exo_camera_1', 'wrist_camera'],
+                   'checkpoint_path': PosixPath('/home/youngsun/simul/MolmoBot-DROID'),
+                   'clamp_gripper': True,
+                   'device': 'cpu',
+                   'execute_horizon': 8,
+                   'gripper_representation_count': 1,
+                   'policy_cls': <class 'olmo.eval.configure_molmo_spaces.SynthVLAPolicy'>,
+                   'policy_type': 'learned',
+                   'relative_max_joint_delta': [0.2,
+                                                0.2,
+                                                0.2,
+                                                0.2,
+                                                0.2,
+                                                0.2,
+                                                0.2],
+                   'states_mode': 'cross_attn'},
+ 'policy_dt_ms': 66.0,
+ 'profile': False,
+ 'profiler': None,
+ 'robot_config': {'K_damping': None,
+                  'K_stiffness': None,
+                  'action_noise_config': {'action_scale_factor': 0.1,
+                                          'base_action_scale_factor': 0.1,
+                                          'enabled': False,
+                                          'max_base_position_noise': 0.02,
+                                          'max_base_rotation_noise': 0.05,
+                                          'max_tcp_position_noise': 0.02,
+                                          'max_tcp_rotation_noise': 0.1,
+                                          'rotation_noise_scale': 0.1},
+                  'base_size': [0.5, 0.5, 0.58],
+                  'command_mode': {'arm': 'joint_position',
+                                   'gripper': 'joint_position'},
+                  'default_world_pose': [0, 0, 0, 1, 0, 0, 0],
+                  'gravcomp': True,
+                  'init_qpos': {'arm': [0,
+                                        -0.7853,
+                                        0,
+                                        -2.35619,
+                                        0,
+                                        1.57079,
+                                        0.0],
+                                'gripper': [0.00296, 0.00296]},
+                  'init_qpos_noise_range': {'arm': [0.025,
+                                                    0.05,
+                                                    0.075,
+                                                    0.1,
+                                                    0.125,
+                                                    0.15,
+                                                    0.175]},
+                  'name': 'franka_droid',
+                  'perturb_texture_probability': 0.7,
+                  'robot_cls': <class 'molmo_spaces.robots.franka.FrankaRobot'>,
+                  'robot_factory': <class 'molmo_spaces.robots.franka.FrankaRobot'>,
+                  'robot_namespace': 'robot_0/',
+                  'robot_view_factory': <class 'molmo_spaces.robots.robot_views.franka_droid_view.FrankaDroidRobotView'>,
+                  'robot_xml_path': PosixPath('model.xml')},
+ 'scene_dataset': 'procthor-10k',
+ 'seed': 42,
+ 'sim_dt_ms': 2.0,
+ 'task_config': {'action_dtype': 'float32',
+                 'added_objects': {},
+                 'object_poses': None,
+                 'referral_expressions': {},
+                 'referral_expressions_priority': {},
+                 'task_cls': None,
+                 'tracked_object_names': None,
+                 'use_sensors': True},
+ 'task_config_preset_exp': None,
+ 'task_config_preset_scn': None,
+ 'task_horizon': 200,
+ 'task_sampler_config': {'check_robot_placement_visibility': True,
+                         'enable_texture_randomization': False,
+                         'house_inds': [321],
+                         'load_robot_from_file': True,
+                         'max_allowed_sequential_irrecoverable_failures': 5,
+                         'max_allowed_sequential_rollout_failures': 10,
+                         'max_allowed_sequential_task_sampler_failures': 10,
+                         'max_asset_failures': 10,
+                         'max_tasks': 10000,
+                         'max_total_attempts_multiplier': 6,
+                         'randomize_dynamics': False,
+                         'randomize_lighting': False,
+                         'randomize_robot_textures': False,
+                         'randomize_textures': False,
+                         'randomize_textures_all': False,
+                         'robot_placement_exclusion_threshold': 0.15,
+                         'robot_placement_rotation_range_rad': 0.7853981633974483,
+                         'samples_per_house': 1,
+                         'scene_xml_paths': None,
+                         'sim_settle_timesteps': 500,
+                         'task_batch_size': 1,
+                         'task_sampler_class': <class 'molmo_spaces.tasks.task_sampler.BaseMujocoTaskSampler'>,
+                         'verbose': False},
+ 'task_type': 'pick',
+ 'terminate_upon_success': False,
+ 'use_filament': True,
+ 'use_passive_viewer': False,
+ 'use_wandb': False,
+ 'viewer_cam_dict': {'azimuth': 45.0,
+                     'distance': 5.0,
+                     'elevation': -30.0,
+                     'lookat': [0.0, 0.0, 0.5]},
+ 'wandb_name': None,
+ 'wandb_project': 'mlspaces-benchmark-eval'}	[pipeline.py: 1202]
+04/06 13:40:10 INFO: [Worker 0] Data versions in use: {'robots': {'rby1': '20251224', 'rby1m': '20251224', 'franka_droid': '20260127', 'franka_cap': '20260213', 'floating_rum': '20251110', 'floating_robotiq': '20260208_retry4', 'franka_fr3': '20260303'}, 'scenes': {'ithor': '20251217', 'refs': '20250923', 'procthor-10k-train': '20251122', 'procthor-10k-val': '20251217', 'procthor-10k-test': '20251121', 'holodeck-objaverse-train': '20251217', 'holodeck-objaverse-val': '20251217', 'procthor-objaverse-train': '20251205', 'procthor-objaverse-val': '20251205'}, 'objects': {'thor': '20251117', 'objaverse': '20260131', 'objathor_metadata': '20260129'}, 'grasps': {'droid': '20251116', 'droid_objaverse': '20251218'}, 'test_data': {'franka_pick': '20260209', 'franka_pick_and_place': '20260305', 'rby1_door_opening': '20260228', 'rby1_pnp': '20260305', 'rum_open_close': '20260305', 'rum_pick': '20260209', 'test_randomized_data': '20251209', 'thormap': '20251209'}, 'benchmarks': {'molmospaces-bench-v2': '20260325_1'}}	[task_sampler.py: 317]
+04/06 13:40:10 INFO: [Worker 0] Worker 0 starting house 321 (index 0/1)	[pipeline.py: 416]
+04/06 13:40:10 INFO: [Worker 0] Loaded 1 episodes for house 321 from /home/youngsun/simul/MolmoBot/MolmoBot/benchmarks/minimal_benchmark	[json_eval_runner.py: 238]
+04/06 13:40:10 INFO: [Worker 0] Data versions in use: {'robots': {'rby1': '20251224', 'rby1m': '20251224', 'franka_droid': '20260127', 'franka_cap': '20260213', 'floating_rum': '20251110', 'floating_robotiq': '20260208_retry4', 'franka_fr3': '20260303'}, 'scenes': {'ithor': '20251217', 'refs': '20250923', 'procthor-10k-train': '20251122', 'procthor-10k-val': '20251217', 'procthor-10k-test': '20251121', 'holodeck-objaverse-train': '20251217', 'holodeck-objaverse-val': '20251217', 'procthor-objaverse-train': '20251205', 'procthor-objaverse-val': '20251205'}, 'objects': {'thor': '20251117', 'objaverse': '20260131', 'objathor_metadata': '20260129'}, 'grasps': {'droid': '20251116', 'droid_objaverse': '20251218'}, 'test_data': {'franka_pick': '20260209', 'franka_pick_and_place': '20260305', 'rby1_door_opening': '20260228', 'rby1_pnp': '20260305', 'rum_open_close': '20260305', 'rum_pick': '20260209', 'test_randomized_data': '20251209', 'thormap': '20251209'}, 'benchmarks': {'molmospaces-bench-v2': '20260325_1'}}	[task_sampler.py: 317]
+04/06 13:40:10 WARNING: [Worker 0] Body name 'RoboTHOR_book_ai2_2_v' doesn't match expected 'book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0' from object name 'book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0'. Using expected name.	[json_eval_task_sampler.py: 522]
+04/06 13:40:10 INFO: [Worker 0] Added body to scene: book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0	[json_eval_task_sampler.py: 563]
+04/06 13:40:12 INFO: [Worker 0] Scene updated: /home/youngsun/simul/MolmoBot/MolmoBot/.venv/lib/python3.11/site-packages/assets/scenes/ithor/FloorPlan321_physics.xml	[task_sampler.py: 797]
+04/06 13:40:12 INFO: [Worker 0] randomize_scene: episode_spec says: house_index=321, scene_dataset=ithor, data_split=val	[json_eval_task_sampler.py: 577]
+04/06 13:40:12 INFO: [Worker 0] randomize_scene: config says: scene_dataset=ithor, data_split=val	[json_eval_task_sampler.py: 583]
+04/06 13:40:12 INFO: [Worker 0] randomize_scene: Setting poses for 1 objects	[json_eval_task_sampler.py: 601]
+04/06 13:40:12 INFO: [Worker 0] Setting pose for body: book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0	[json_eval_task_sampler.py: 621]
+04/06 13:40:12 INFO: [Worker 0] Scene setup from episode spec completed.	[json_eval_task_sampler.py: 641]
+04/06 13:40:12 INFO: [Worker 0] [CAMERA SETUP] Setting up 2 cameras	[camera_manager.py: 300]
+04/06 13:40:12 INFO: [Worker 0] [CAMERA SETUP] Set up fixed exocentric camera 'exo_camera_1'	[camera_manager.py: 550]
+04/06 13:40:12 INFO: [Worker 0] [CAMERA SETUP] Set up robot-mounted camera 'wrist_camera'	[camera_manager.py: 510]
+04/06 13:40:12 INFO: [Worker 0] [CAMERA SETUP] Successfully set up 2 cameras	[camera_manager.py: 326]
+04/06 13:40:12 INFO: [Worker 0] Sampled task 'Pick up the book'	[task_sampler.py: 1136]
+04/06 13:40:12 INFO: [Worker 0] Worker 0 house 321 episode 0/1 collected=0/1	[pipeline.py: 965]
+04/06 13:40:12 WARNING: [Worker 0] Policy <class 'olmo.eval.configure_molmo_spaces.SynthVLAPolicy'> does not support tracking retries.	[sensors.py: 1071]
+04/06 13:49:29 INFO: [Worker 0] Worker 0 house 321 episode 0 object book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0 completed with success=False	[pipeline.py: 1029]
+04/06 13:49:30 INFO: [Worker 0] Batching and saving trajectory data for house_321: 1 episodes	[pipeline.py: 210]
+04/06 13:49:30 INFO: [Worker 0] Preparing episode data: 201 timesteps	[save_utils.py: 269]
+04/06 13:49:33 WARNING: [Worker 0] No terminated recorded, assuming episode ended	[save_utils.py: 644]
+04/06 13:49:33 INFO: [Worker 0] Saved 1 episodes to: /home/youngsun/simul/MolmoBot/MolmoBot/minimal_eval_results/FrankaState8ClampAbsPosConfig/20260406_134001/house_321	[save_utils.py: 688]
+04/06 13:49:33 INFO: [Worker 0] Successfully saved trajectory data for house_321 in 2.14s (batch: 2.11s, save: 0.03s)	[pipeline.py: 257]
+04/06 13:49:33 WARNING: [Worker 0] No trajectory data to save for house_321	[pipeline.py: 206]
+04/06 13:49:33 INFO: [Worker 0] Worker 0 completed house 321: 0/1 successful episodes	[pipeline.py: 1158]
+04/06 13:49:33 INFO: [Worker 0] Worker 0 completed processing assigned houses	[pipeline.py: 464]
+04/06 13:49:33 INFO: Completed 1 houses, skipped 0 houses	[pipeline.py: 1323]
+04/06 13:49:33 INFO: Success count: 0, Total count: 1	[pipeline.py: 1326]
+04/06 13:49:33 INFO: Success rate: 0.00%	[pipeline.py: 1327]
