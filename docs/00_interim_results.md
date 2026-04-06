@@ -4,7 +4,19 @@
 
 ---
 
-## 1. 검증 환경 요약
+## 1. 검토 목표
+
+MolmoBot이 회사 로봇의 채택 후보로서 타당한지 판단한다. 구체적으로:
+
+- 릴리즈된 모델이 시뮬레이션 → 타겟 환경으로 **zero-shot 전이** 가능한지
+- zero-shot이 약할 경우, 학습 레시피나 데이터가 **재활용할 가치**가 있는지
+- 관측된 성능 gap 대비 **통합 비용이 정당화**되는지
+
+실질적 의사결정 게이트는 시뮬레이션 동작 여부가 아니라, 타겟 로봇에서의 zero-shot 행동이다.
+
+---
+
+## 2. 검증 환경
 
 | 항목 | macOS (CPU) | Ubuntu (GPU) |
 |------|-------------|--------------|
@@ -17,7 +29,7 @@
 
 ---
 
-## 2. 중간결과
+## 3. 중간결과
 
 ### 환경 재현성
 
@@ -57,7 +69,7 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 
 ---
 
-## 3. 핵심 발견 사항
+## 4. 핵심 발견 사항
 
 ### 기술적 특성
 
@@ -85,17 +97,21 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 
 ---
 
-## 4. 현재 상태 판정
+## 5. 현재 상태 판정
 
-> **MolmoBot은 시뮬레이션에서의 인프라 및 기초 성능 검증을 통과했다.**
->
-> 그러나 **sim2real 전이는 아직 완전히 미검증** 상태이며, 진정한 채택 의사결정은 real-robot zero-shot trial 이후에만 가능하다.
+현재 근거가 **지지하는** 결론:
+> MolmoBot은 시뮬레이션에서 인프라 및 기초 성능 검증을 통과했으며, 심화 평가를 진행할 가치가 있다.
+
+현재 근거가 **아직 지지하지 못하는** 결론:
+> MolmoBot이 회사 로봇 또는 타겟 환경에서 zero-shot 전이에 성공할 것이다.
+
+가장 큰 남은 마일스톤은 real-robot zero-shot gate이다. 이것이 실행되기 전까지 채택 타당성은 "유망하지만 미검증" 상태.
 
 ---
 
-## 5. Next Steps
+## 6. Next Steps
 
-### 단기 (sim 시그널 강화)
+### 단기 — sim 시그널 강화
 
 1. **Pick-and-place config mismatch 해결**
    - `max_place_receptacle_pos_displacement` 파라미터 불일치 조사 및 수정
@@ -109,7 +125,7 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
    - `jax-cuda12-plugin[with-cuda]==0.6.2` 설치 (dry-run 호환 확인됨)
    - 벤치마크 속도 개선이 필요할 때만
 
-### 중기 (real-robot gate)
+### 중기 — real-robot gate
 
 4. **하드웨어 확보 후 real-robot zero-shot trial**
    - 타겟 로봇 embodiment 정의
@@ -119,19 +135,21 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 
 5. **Zero-shot 실패 시 gap 분류**
    - perception / camera placement / action semantics / timing / embodiment / task distribution 중 어디가 병목인지 진단
-   - 진단 결과에 따라: 모델만 재활용 / 학습 레시피 재활용 / 데이터 구조 재활용 / 커스텀 적응 경로 중 결정
+   - 진단 결과에 따라 다음 중 결정:
+     - 릴리즈된 모델만 재활용
+     - 학습 레시피 재활용
+     - 데이터 구조 재활용
+     - 커스텀 적응 경로
 
 ---
 
-## 6. 관련 문서 인덱스
+## 7. 관련 문서
 
 | 문서 | 설명 |
 |------|------|
-| [molmobot_feasibility_report.md](./molmobot_feasibility_report.md) | 기술 타당성 상세 분석 (아키텍처, 학습, 데이터, 커스터마이징) |
-| [molmobot_demo_guide_macos_cpu.md](./molmobot_demo_guide_macos_cpu.md) | macOS CPU 데모 실행 가이드 |
-| [franka_droid_feasibility_status_20260406.md](./franka_droid_feasibility_status_20260406.md) | Ubuntu GPU 벤치마크 상세 로그 |
-| [franka_droid_feasibility.md](./franka_droid_feasibility.md) | 평가 워크플로우 (Phase 0-3) |
-| [molmobot_adoption_status.md](./molmobot_adoption_status.md) | 채택 의사결정 프레임워크 및 remaining steps |
+| [01_technical_analysis.md](./01_technical_analysis.md) | 기술 타당성 상세 분석 (아키텍처, 학습, 데이터, 커스터마이징) |
+| [02_gpu_benchmark_log.md](./02_gpu_benchmark_log.md) | Ubuntu GPU 벤치마크 상세 로그 및 평가 워크플로우 |
+| [03_cpu_demo_guide.md](./03_cpu_demo_guide.md) | macOS CPU 데모 실행 가이드 |
 
 ### 산출물 (artifacts)
 
