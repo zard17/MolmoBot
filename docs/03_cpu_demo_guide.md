@@ -1,6 +1,6 @@
 # MolmoBot 데모 실행 가이드 (macOS + CPU)
 
-> Apple Silicon Mac에서 MolmoBot demo_policy.ipynb를 로컬 실행하는 방법
+> 가상 데이터로 학습된 로봇 조작 정책이 실제로 동작하는지 로컬에서 빠르게 확인하기 위한 가이드
 >
 > 검증 환경: macOS 15 (Darwin 24.6.0), Apple M3 Pro, 18GB RAM, Python 3.11
 

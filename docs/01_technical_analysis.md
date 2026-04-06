@@ -1,6 +1,6 @@
-# MolmoBot 기술 타당성 분석 보고서
+# MolmoBot 기술 분석 — 가상 데이터 파이프라인 구조와 우리 로봇 적용 경로
 
-> Allen AI의 시뮬레이션 기반 로봇 조작 프레임워크, 회사 로봇 학습 적용 가능성 평가
+> 시뮬레이션 전용 데이터로 로봇 조작을 학습하는 MolmoBot의 내부 구조, 데이터 생성 방식, 학습 인프라, 그리고 우리 로봇에 적용할 경우의 구체적 경로를 분석한다.
 
 ---
 
@@ -382,78 +382,30 @@ torchrun ... train_molmobot.py <molmo2_checkpoint> \
 
 ---
 
-## 10. 타당성 평가 종합
+## 10. 우리 로봇에 가상 데이터 파이프라인을 구축할 경우
 
-### 강점
+> 강점/리스크 요약은 [00_interim_results.md](./00_interim_results.md)의 4절 참조. 여기서는 투자 규모만 정리한다.
 
-| 항목 | 평가 |
-|------|------|
-| 아키텍처 유연성 | 다양한 로봇 형태 지원 (8-DOF ~ 29-DOF), 프리셋 시스템으로 확장 용이 |
-| 카메라 일반화 | 랜덤 카메라 배치로 학습 → 임의 시점 대응 |
-| 분산 학습 | FSDP2 기반 프로덕션급 인프라, 멀티노드 스케일링 |
-| Sim-to-Real | WebSocket 배포, 안전 장치 내장, 검증된 전이 사례 |
-| 오픈소스 | Apache 2.0, 코드/모델/데이터 모두 공개 |
-| 마이크로배칭 | device_batch_size 조절로 소규모 GPU 적응 가능 |
+### 투자 규모
 
-### 리스크
+| 단계 | 목표 | 예상 인프라 |
+|------|------|------------|
+| 현재: 검증 | 릴리즈 모델로 가상 데이터 학습의 sim 성능 확인 | GPU 1× (추론) |
+| 다음: PoC | 우리 로봇 MJCF 구축 → 소규모 가상 데이터 생성 (1,000 궤적) → 파인튜닝 | GPU 4-8× A100/H100, 스토리지 500GB |
+| 이후: 스케일업 | 대규모 가상 데이터 생성 → 풀 학습 → sim-to-real 전이 테스트 | GPU 8-16× H100, 스토리지 수 TB, 분산 데이터 생성 클러스터 |
 
-| 항목 | 평가 |
-|------|------|
-| GPU 요구 | 학습에 최소 H100 급 GPU 복수 필요 (추론은 단일 GPU/CPU 가능) |
-| 추론 지연 | CPU 추론 시 action chunk당 ~80초 (실시간 66ms 대비 ~1200배) — GPU 필수 |
-| 데이터 포맷 | HDF5 로컬 파일시스템 의존, 클라우드 네이티브 미지원 |
-| 외부 의존성 | molmo_spaces 등 Allen AI 패키지에 의존 (업데이트 불확실) |
-| 데이터 생성 | 커스텀 로봇용 시뮬 데이터 생성 파이프라인 자체 구축 필요 |
-| 모델 크기 | 4B 파라미터 → 추론 시 ~8GB VRAM (실시간성 고려 필요) |
-| 에셋 버전 | Objaverse 버전 불일치 경고 발생 (20260131 vs 벤치마크 20251016) — 평가 재현성 리스크 |
-
-### 권장 도입 전략
-
-**Phase 1: 검증 (1~2주)**
-- 기존 Franka 모델로 `demo_policy.ipynb` 실행 (완료)
-- molmo_spaces 벤치마크 평가 실행
-- 추론 성능 측정 (latency, 정확도)
-
-**Phase 2: PoC (2~4주)**
-- 회사 로봇의 MuJoCo MJCF 모델 구축
-- 소규모 시뮬 데이터 생성 (1,000 궤적)
-- 기존 체크포인트에서 파인튜닝 (4~8 GPU)
-- 시뮬레이션 내 평가
-
-**Phase 3: 스케일업 (1~2개월)**
-- 대규모 데이터 생성 파이프라인 구축
-- 전체 학습 실행 (8+ GPU)
-- Sim-to-Real 전이 테스트
-
-### 필요 인프라 (최소)
-
-| 항목 | Phase 1 | Phase 2 | Phase 3 |
-|------|---------|---------|---------|
-| GPU | 1× (추론) | 4~8× A100/H100 | 8~16× H100 |
-| 스토리지 | 50GB | 500GB | 수 TB |
-| 시뮬레이션 | 로컬 MuJoCo | 로컬 MuJoCo | 분산 데이터 생성 클러스터 |
+> **참고:** 구체적 로드맵과 의사결정 기준은 [00_interim_results.md](./00_interim_results.md)의 Next Steps 참조.
 
 ---
 
-## 부록: 로컬 데모 실행 결과 요약 (macOS M3 Pro, CPU)
+## 부록: 로컬 데모 실행 결과
 
-데모 실행 가이드 상세: [molmobot_demo_guide_macos_cpu.md](./molmobot_demo_guide_macos_cpu.md)
+macOS M3 Pro CPU에서 동작 확인. 추론은 실시간 대비 ~190배 느림 (GPU 필수).
+성능 수치 및 트러블슈팅은 [03_cpu_demo_guide.md](./03_cpu_demo_guide.md) 참조.
 
-| 항목 | 결과 |
-|------|------|
-| 환경 | macOS 15 (Darwin 24.6.0), Apple M3 Pro, 18GB RAM |
-| 모델 | MolmoBot-DROID (Molmo2-4B, bfloat16) |
-| 디바이스 | CPU (CUDA 없음, MPS 미지원) |
-| 모델 로드 | 10.8초 (unsharded checkpoint) |
-| 추론 속도 | action chunk당 ~80초, 버퍼 step당 ~2초 (평균 12.45초/step) |
-| 200 steps | 약 40분 소요 |
-| 메모리 | ~8GB (bfloat16) + MuJoCo overhead — 18GB에서 동작 확인 |
-
-**발견된 기술적 특이점:**
-- LLM 백본 토크나이저가 `Qwen/Qwen3-4B-Instruct-2507`에서 로드됨 — Molmo2의 LLM이 Qwen3 계열 기반
-- action_horizon=16, n_obs_steps=2 (노트북 코드에서는 1로 설정하나 체크포인트 config에서 2로 override)
-- cv2/decord/av 간 libavdevice, libSDL2 중복 로드 경고 (macOS 특이, 크래시 미발생)
-- Objaverse 에셋 버전 불일치 경고 (기능에는 영향 없음)
+**체크포인트에서 확인된 특이점:**
+- 토크나이저가 `Qwen/Qwen3-4B-Instruct-2507`에서 로드됨 (Molmo2의 LLM이 Qwen3 계열)
+- `n_obs_steps=2` — 노트북 기본값(1)을 체크포인트 config가 override. MolmoBot-DROID는 2-frame 관측 모델
 
 ---
 

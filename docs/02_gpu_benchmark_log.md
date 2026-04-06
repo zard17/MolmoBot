@@ -1,16 +1,16 @@
 # GPU 벤치마크 로그 및 평가 워크플로우
 
-> Ubuntu / A100 환경에서의 MolmoBot Franka/DROID 타당성 검증 기록
+> Ubuntu / A100 환경에서 가상 데이터 학습 정책(MolmoBot)의 시뮬레이션 성능을 측정한 기록
 
 ---
 
 ## 평가 워크플로우
 
-MolmoBot 채택 타당성 검증은 4단계로 구성된다.
+가상 데이터 학습 정책의 유효성 검증은 4단계로 구성된다.
 
 ### Phase 0. 노트북 sanity check (선택)
 
-시각적 확인용. [`demo_policy.ipynb`](../MolmoBot/demo_policy.ipynb)를 열어 체크포인트 로드, 렌더링, 액션 생성이 정상인지 확인한다. 채택 의사결정 시그널로 사용하지 않는다.
+시각적 확인용. [`demo_policy.ipynb`](../MolmoBot/demo_policy.ipynb)를 열어 체크포인트 로드, 렌더링, 액션 생성이 정상인지 확인한다. 성능 판단 시그널로 사용하지 않는다.
 
 ### Phase 1. Sim 벤치마크 smoke test
 
@@ -28,6 +28,8 @@ python launch_scripts/run_feasibility.py benchmark-smoke \
 선택 플래그: `--local-path`, `--use-filament`, `--manifest-path`.
 
 ### Phase 2. Real policy 서버 구동
+
+> **주의:** 아래는 Franka/DROID 기준 예시. 타겟 로봇(RBY1)에서는 `--hf-repo allenai/MolmoBot-RBY1Multitask` 및 해당 카메라/액션 설정 사용.
 
 ```bash
 PYTHONPATH=. python launch_scripts/serve_molmo.py \
@@ -51,10 +53,12 @@ python scripts/droid/run_feasibility_trials.py \
 
 `--dry-run`으로 명령어 미리 확인 가능. `suite_manifest.json` + `summary.json` 자동 생성.
 
+> RBY1의 경우 카메라 ID와 tasks-file을 RBY1 구성에 맞게 변경 필요.
+
 ### 결과 해석 기준
 
-- Sim smoke → 환경이 클린하게 동작하는가? 체크포인트가 non-degenerate rollout을 생성하는가?
-- Real suite → zero-shot 성공이 있는가? 실패 시 camera/action/timing/task 중 어느 쪽이 지배적인가?
+- Sim smoke → 환경이 클린하게 동작하는가? 가상 데이터로 학습한 정책이 유의미한 rollout을 생성하는가?
+- Real suite → 가상 데이터 학습 정책이 실물에서 zero-shot 성공을 보이는가? 실패 시 camera/action/timing/task 중 어느 gap이 지배적인가?
 
 ---
 

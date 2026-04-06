@@ -1,18 +1,20 @@
-# MolmoBot 타당성 검토 중간결과
+# 가상 데이터 기반 로봇 학습 타당성 검토 — 중간결과
 
-> 2026-04-07 기준, 두 환경(macOS CPU / Ubuntu GPU)에서의 검증 결과 종합
+> 2026-04-07 기준 | 검증 수단: MolmoBot (Allen AI) | 환경: macOS CPU + Ubuntu GPU
 
 ---
 
 ## 1. 검토 목표
 
-MolmoBot이 회사 로봇의 채택 후보로서 타당한지 판단한다. 구체적으로:
+고품질 실물 데이터 없이, **시뮬레이션에서 생성한 가상 데이터만으로 의미 있는 로봇 조작 성능을 얻을 수 있는지** 검증한다. MolmoBot은 이 가설을 가장 직접적으로 시험할 수 있는 공개 프레임워크로서 평가 대상이다.
 
-- 릴리즈된 모델이 시뮬레이션 → 타겟 환경으로 **zero-shot 전이** 가능한지
-- zero-shot이 약할 경우, 학습 레시피나 데이터가 **재활용할 가치**가 있는지
-- 관측된 성능 gap 대비 **통합 비용이 정당화**되는지
+구체적으로:
 
-실질적 의사결정 게이트는 시뮬레이션 동작 여부가 아니라, 타겟 로봇에서의 zero-shot 행동이다.
+- 시뮬레이션 전용 데이터로 학습된 정책이 실물 로봇에서 **zero-shot으로 동작하는지**
+- zero-shot이 약하더라도, 가상 데이터 기반 학습 레시피가 **실물 데이터 대비 유효한 출발점**이 되는지
+- 가상 데이터 파이프라인 구축 비용 대비 **실질적 성능 이득이 있는지**
+
+핵심 질문은 모델 자체의 채택 여부가 아니라, "시뮬레이션 데이터가 우리 로봇 학습에 도움이 되는가"이다.
 
 ---
 
@@ -65,34 +67,27 @@ MolmoBot이 회사 로봇의 채택 후보로서 타당한지 판단한다. 구�
 
 Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.15, got 0.05` (벤치마크/config 호환성 이슈)
 
-**결론:** Pick 태스크에서 70% 성공은 모델이 non-trivial한 조작 능력을 보유함을 시사. 다만 horizon 200으로 단축했으므로 논문 재현 수치는 아님.
+**결론:** 가상 데이터만으로 학습한 정책이 pick 70% 성공. 다만 Franka/DROID 기준이며 horizon 200 단축이므로 참고치. 타겟 로봇(RBY1)에 대한 sim 벤치마크는 아직 미실행.
 
 ---
 
 ## 4. 핵심 발견 사항
 
-### 기술적 특성
+### 가상 데이터 접근법의 특성
 
-- **아키텍처:** Vision-Language-Action (VLA) 모델. Molmo2-4B (Qwen3 LLM 백본) + Flow Matching ActionExpert
-- **추론 메커니즘:** 16 steps 예측, 8 steps 실행 후 재추론 (action chunking)
-- **멀티뷰 지원:** 랜덤 카메라 배치로 학습 → 임의 시점 대응
-- **지원 로봇:** Franka (8-DOF), RBY1 (19-29 DOF)
-
-### 확장성
-
-- 새 로봇 추가 시: `synthmanip_presets.py`에 ACTION_SPECS + CAMERA_PRESETS 정의 → 비교적 구조화된 확장 경로
-- 학습 인프라: FSDP2 기반 분산 학습, `device_batch_size` 조절로 소규모 GPU 적응 가능
-- 커스텀 로봇 적용 시 필요: MuJoCo MJCF 모델 + 시뮬레이션 데이터 생성 파이프라인 자체 구축
+- **100% 시뮬레이션 학습:** ProcTHOR 환경(10,000개) + Objaverse 3D 오브젝트로 대규모 조작 궤적 자동 생성. 실물 데이터 수집 비용 제거
+- **다양성으로 gap 극복:** 랜덤 카메라 배치, fisheye 왜곡, 다양한 조명/텍스처
+- **멀티 로봇 범용:** 동일 파이프라인으로 Franka (8-DOF), RBY1 (19-29 DOF) 모두 지원
+- 상세 구조 및 적용 경로는 [01_technical_analysis.md](./01_technical_analysis.md) 참조
 
 ### 리스크
 
 | 리스크 | 수준 | 설명 |
 |--------|------|------|
-| GPU 요구 (학습) | 높음 | 최소 4-8x A100/H100 |
-| GPU 요구 (추론) | 중간 | 1x GPU (~8GB VRAM), CPU는 비실시간 |
-| 외부 의존성 | 중간 | molmo_spaces, molmospaces-resources (Allen AI 관리, 업데이트 불확실) |
-| 데이터 생성 | 중간 | 커스텀 로봇용 시뮬 데이터 파이프라인 자체 구축 필요 |
-| Objaverse 에셋 버전 | 낮음 | 버전 불일치 경고 발생 (기능에는 영향 없음, 정식 재현 시 주의) |
+| 가상 데이터 파이프라인 구축 비용 | 높음 | 우리 로봇용 MJCF 모델 + 시뮬 환경 + 데이터 생성 파이프라인 자체 구축 필요 |
+| GPU 요구 (학습) | 높음 | 가상 데이터로 학습하더라도 최소 4-8x A100/H100 필요 |
+| 대안 프레임워크 비교 부재 | 중간 | MolmoBot만 검증 중. 다른 sim-to-real 접근법(예: domain randomization 단독, diffusion policy + sim 등)과의 비교가 없어 가상 데이터의 이점을 MolmoBot 고유 효과와 분리하기 어려움 |
+| 외부 의존성 | 중간 | molmo_spaces 등 Allen AI 패키지에 의존 (업데이트 불확실). 가상 데이터 접근법 자체를 내재화하려면 이 의존성을 넘어야 함 |
 | 라이선스 | 낮음 | Apache 2.0 (상업적 사용 가능) |
 
 ---
@@ -100,46 +95,44 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 ## 5. 현재 상태 판정
 
 현재 근거가 **지지하는** 결론:
-> MolmoBot은 시뮬레이션에서 인프라 및 기초 성능 검증을 통과했으며, 심화 평가를 진행할 가치가 있다.
+> 가상 데이터 학습이 sim에서 non-trivial한 성능을 낸다 (Franka pick 70%). 더 깊이 검증할 가치가 있다.
 
 현재 근거가 **아직 지지하지 못하는** 결론:
-> MolmoBot이 회사 로봇 또는 타겟 환경에서 zero-shot 전이에 성공할 것이다.
+> 타겟 로봇(RBY1)의 sim 또는 실물 환경에서도 유효하다.
 
-가장 큰 남은 마일스톤은 real-robot zero-shot gate이다. 이것이 실행되기 전까지 채택 타당성은 "유망하지만 미검증" 상태.
+남은 질문:
+1. **RBY1 sim에서도 유사한 성능이 나오는가?** → 단기 검증 가능
+2. **sim 성능이 실물 RBY1으로 전이되는가?** → 하드웨어 확보 후 검증
 
 ---
 
 ## 6. Next Steps
 
-### 단기 — sim 시그널 강화
+### 단기 — 타겟 로봇(RBY1) 기준으로 sim 시그널 확보
 
-1. **Pick-and-place config mismatch 해결**
-   - `max_place_receptacle_pos_displacement` 파라미터 불일치 조사 및 수정
-   - 수정 후 10ep pick-and-place 벤치마크 재실행
+1. **RBY1 체크포인트로 sim 벤치마크 실행**
+   - `allenai/MolmoBot-RBY1Multitask`로 door opening, pick-and-place 등 벤치마크
+   - Franka 결과(pick 70%)는 참고치. **RBY1 결과가 나와야 의사결정 근거**
 
-2. **더 큰 규모의 sim 벤치마크**
-   - Pick-only 50-100 에피소드 → 현재 70%의 통계적 유의미성 확인
-   - 다양한 태스크 구성으로 일반화 성능 확인
+2. **Franka pick-and-place config mismatch 해결** (선택, RBY1이 우선)
+   - `max_place_receptacle_pos_displacement` 파라미터 불일치 수정
 
-3. **GPU JAX 활성화** (선택)
-   - `jax-cuda12-plugin[with-cuda]==0.6.2` 설치 (dry-run 호환 확인됨)
-   - 벤치마크 속도 개선이 필요할 때만
+3. **학습 데이터 파이프라인 분석**
+   - 가상 데이터 규모/다양성/생성 비용, RBY1용 vs Franka용 차이점
+   - 우리가 직접 데이터를 만들 수 있는지 판단하는 근거 확보
 
-### 중기 — real-robot gate
+4. **GPU JAX 활성화** (선택, 벤치마크 처리량이 병목일 때만)
 
-4. **하드웨어 확보 후 real-robot zero-shot trial**
-   - 타겟 로봇 embodiment 정의
-   - 카메라 및 observation/action contract 정의
-   - `run_feasibility_trials.py`로 소규모 태스크 실행
-   - **이것이 진정한 채택 의사결정 게이트**
+### 중기 — 실물 RBY1에서의 전이 검증
 
-5. **Zero-shot 실패 시 gap 분류**
-   - perception / camera placement / action semantics / timing / embodiment / task distribution 중 어디가 병목인지 진단
-   - 진단 결과에 따라 다음 중 결정:
-     - 릴리즈된 모델만 재활용
-     - 학습 레시피 재활용
-     - 데이터 구조 재활용
-     - 커스텀 적응 경로
+5. **RBY1 하드웨어 확보 후 real-robot zero-shot trial**
+   - 카메라 구성 (wrist_r + head + wrist_l), observation/action contract 정의
+   - `run_feasibility_trials.py`를 RBY1에 맞게 구성
+   - **핵심 질문 "가상 데이터가 실물 RBY1에서도 도움이 되는가"의 직접적 답변**
+
+6. **결과에 따른 전략 판단**
+   - **성공 시:** 가상 데이터 파이프라인 투자 정당화. RBY1용 데이터 생성 경로 구체화
+   - **실패 시:** 원인 분류 (perception / camera / action / embodiment / task distribution) → 가상 데이터 자체의 한계인지 도메인 gap인지 구분 → sim+real 혼합 가능성 판단
 
 ---
 
@@ -147,9 +140,9 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 
 | 문서 | 설명 |
 |------|------|
-| [01_technical_analysis.md](./01_technical_analysis.md) | 기술 타당성 상세 분석 (아키텍처, 학습, 데이터, 커스터마이징) |
-| [02_gpu_benchmark_log.md](./02_gpu_benchmark_log.md) | Ubuntu GPU 벤치마크 상세 로그 및 평가 워크플로우 |
-| [03_cpu_demo_guide.md](./03_cpu_demo_guide.md) | macOS CPU 데모 실행 가이드 |
+| [01_technical_analysis.md](./01_technical_analysis.md) | 가상 데이터 파이프라인 구조, 학습 인프라 요구사항, 우리 로봇 적용 경로 상세 |
+| [02_gpu_benchmark_log.md](./02_gpu_benchmark_log.md) | GPU 환경 벤치마크 실행 기록 및 평가 워크플로우 재현 가이드 |
+| [03_cpu_demo_guide.md](./03_cpu_demo_guide.md) | macOS CPU 환경 데모 실행 가이드 (빠른 체험용) |
 
 ### 산출물 (artifacts)
 
