@@ -72,18 +72,20 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 
 ### 가상 데이터 접근법의 특성
 
-- **100% 시뮬레이션 학습:** ProcTHOR 환경(10,000개) + Objaverse 3D 오브젝트로 대규모 조작 궤적 자동 생성. 실물 데이터 수집 비용 제거
-- **다양성으로 gap 극복:** 랜덤 카메라 배치, fisheye 왜곡, 다양한 조명/텍스처
-- **멀티 로봇 범용:** 동일 파이프라인으로 Franka (8-DOF), RBY1 (19-29 DOF) 모두 지원
+- **데이터 규모:** 170만 에피소드, 2.95억 프레임, 5,704시간 분량. 94,200개 절차적 생성 환경, 11,400+ 오브젝트
+- **데이터 생성 방식:** 기존 approach와 동일하게 scripted policy 기반이지만, 6-DoF grasp sampling + IK/CuRobo motion planning + retry logic으로 구성된 고도화된 planner. 이 규모에서 검증 완료
+- **도메인 랜덤화:** 조명/텍스처/물리/액션 노이즈 + 카메라를 360도 전방위로 랜덤 배치하여 임의 시점에서 동작하도록 학습. 단순히 양을 키운 것이 아니라 랜덤화의 범위와 체계성이 핵심
+- **파이프라인 전체 공개:** datagen 코드, 환경, 에셋이 molmospaces 레포에 오픈소스(Apache 2.0). 환경/랜덤화/녹화 인프라를 재사용 가능
+- **RBY1 planner 존재:** CuRobo 기반 motion planning이 이미 구현되어 있음. 단, 우리 RBY1의 커스텀 부분(하드웨어 변경, 센서 구성 등)에 따라 그대로 사용 못할 가능성 있음
 - 상세 구조 및 적용 경로는 [01_technical_analysis.md](./01_technical_analysis.md) 참조
 
 ### 리스크
 
 | 리스크 | 수준 | 설명 |
 |--------|------|------|
-| 가상 데이터 파이프라인 구축 비용 | 높음 | 우리 로봇용 MJCF 모델 + 시뮬 환경 + 데이터 생성 파이프라인 자체 구축 필요 |
+| 파이프라인 적용 비용 | 중간 | 환경/랜덤화 인프라는 재사용 가능하나, 우리 RBY1 커스텀에 맞는 planner 수정 및 MJCF 모델 구축 필요 |
 | GPU 요구 (학습) | 높음 | 가상 데이터로 학습하더라도 최소 4-8x A100/H100 필요 |
-| 대안 프레임워크 비교 부재 | 중간 | MolmoBot만 검증 중. 다른 sim-to-real 접근법(예: domain randomization 단독, diffusion policy + sim 등)과의 비교가 없어 가상 데이터의 이점을 MolmoBot 고유 효과와 분리하기 어려움 |
+| 기존 approach와의 직접 비교 불가 | 중간 | 기존 scripted policy + OpenPI도 미완성이라 현 시점에서 정량 비교가 어려움. MolmoBot 단독 결과로 방향을 판단해야 함 |
 | 외부 의존성 | 중간 | molmo_spaces 등 Allen AI 패키지에 의존 (업데이트 불확실). 가상 데이터 접근법 자체를 내재화하려면 이 의존성을 넘어야 함 |
 | 라이선스 | 낮음 | Apache 2.0 (상업적 사용 가능) |
 
@@ -103,7 +105,23 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 
 ---
 
-## 6. Next Steps
+## 6. 도입 경로 선택지
+
+MolmoBot의 학습 코드는 MuJoCo에 의존하지 않는다 (HDF5 데이터만 읽음). 단, 데이터 생성 파이프라인(molmospaces)은 MuJoCo 전용. 기존 Isaac Sim 파이프라인과의 관계에 따라 세 가지 경로가 있다.
+
+| 경로 | 설명 | 예상 effort | 핵심 trade-off |
+|------|------|------------|---------------|
+| **A. MolmoBot 풀 스택** | MuJoCo로 전환, molmospaces 파이프라인 사용 | 중간 | 로봇 MJCF 변환 + RBY1 커스텀 반영 필요. 대신 94,200 환경 + RBY1 planner + 전방위 랜덤화를 즉시 사용 가능. 물리 엔진(PhysX→MuJoCo) 차이는 도메인 랜덤화가 설계상 커버 |
+| **B. 학습 코드만 도입** | Isaac Sim 유지, HDF5 exporter만 추가 | 낮음 | MolmoBot 성과의 핵심(환경 다양성, 랜덤화 범위, 데이터 규모)을 못 씀. 기존 파이프라인의 다양성/규모가 충분한지에 달림 |
+| **C. Isaac Sim에서 재구현** | Isaac Sim 위에 molmospaces급 환경 다양성/랜덤화 구축 | 높음 | 가장 이상적이지만 사실상 molmospaces를 Isaac Sim용으로 다시 만드는 것 |
+
+기존 Isaac Sim의 리소스 파일(메시, 텍스처, 로봇 모델)은 MuJoCo로 변환 가능. 전환 시 실질적으로 버리는 것은 Isaac Sim API에 종속된 코드(scripted policy, 랜덤화 로직)이며, 이는 molmospaces의 기존 구현이 대체한다.
+
+RBY1 sim 벤치마크 결과에 따라 경로를 결정한다.
+
+---
+
+## 7. Next Steps
 
 ### 단기 — 타겟 로봇(RBY1) 기준으로 sim 시그널 확보
 
@@ -133,7 +151,7 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 
 ---
 
-## 7. 관련 문서
+## 8. 관련 문서
 
 | 문서 | 설명 |
 |------|------|
