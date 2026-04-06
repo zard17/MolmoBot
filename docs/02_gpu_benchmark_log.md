@@ -170,4 +170,4 @@ MUJOCO_GL=egl PYOPENGL_PLATFORM=egl \
 
 ---
 
-*기록일: 2026-04-06 / 환경: Ubuntu, NVIDIA A100, Python 3.11*
+*기록일: 2026-04-06 / 환경: Ubuntu 22.04, NVIDIA A100 SXM 80GB, Python 3.11*

@@ -22,8 +22,8 @@
 
 | 항목 | macOS (CPU) | Ubuntu (GPU) |
 |------|-------------|--------------|
-| 하드웨어 | Apple M3 Pro, 18GB RAM | NVIDIA A100 |
-| OS | macOS 15 (Darwin 24.6.0) | Ubuntu (headless) |
+| 하드웨어 | Apple M3 Pro, 18GB RAM | NVIDIA A100 SXM 80GB |
+| OS | macOS 15 (Darwin 24.6.0) | Ubuntu 22.04 (headless) |
 | Python | 3.11 | 3.11 |
 | 렌더링 | MuJoCo 기본 | EGL (`MUJOCO_GL=egl`) |
 | JAX | CPU only | CPU only (CUDA 전환 가능 확인) |
