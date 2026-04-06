@@ -282,6 +282,34 @@ Failed to import mujoco_warp: No module named 'warp'
 
 이 경고는 무시해도 됩니다. warp는 선택적 최적화 모듈입니다.
 
+### 텍스처 파일 경로 오류 (PillowF_AO.png)
+
+**문제**: 다음 오류가 발생하며 장면 컴파일이 실패합니다:
+
+```
+ValueError: Error: Error opening file '../../objects/thor/Textures/PillowF_AO.png'
+```
+
+이 오류는 장면 XML 파일이 버전별 경로(`../../objects/thor/20251117/Textures/`) 대신 일반 경로(`../../objects/thor/Textures/`)를 참조하기 때문에 발생합니다.
+
+**해결**: 심볼릭 링크를 생성하여 경로를 수정합니다:
+
+```bash
+cd /home/youngsun/.cache/molmo-spaces-resources/objects/thor
+ln -s 20251117/Textures Textures
+```
+
+이렇게 하면 `../../objects/thor/Textures/` 경로가 실제 텍스처 파일이 있는 `20251117/Textures/` 디렉토리를 가리키게 됩니다.
+
+**참고**: 일부 장면에서 필요한 텍스처 파일이 누락된 경우(예: `PillowF_AO.png`), 간단한 플레이스홀더 텍스처를 생성할 수 있습니다:
+
+```bash
+cd /home/youngsun/.cache/molmo-spaces-resources/objects/thor/20251117/Textures
+python3 -c "from PIL import Image; img = Image.new('RGB', (64, 64), color=(255, 255, 255)); img.save('PillowF_AO.png')"
+```
+
+이 수정은 영구적이며, 에셋이 재다운로드되더라도 심볼릭 링크는 유지됩니다. 다른 버전의 thor 에셋을 사용하는 경우에만 링크를 업데이트하면 됩니다.
+
 ---
 
 ## 참고 정보

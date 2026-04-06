@@ -11,6 +11,32 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 
+def ensure_thor_objects_downloaded():
+    """Ensure THOR objects are downloaded. If not, download them."""
+    try:
+        from molmo_spaces.utils.lazy_loading_utils import get_resource_manager
+        rm = get_resource_manager()
+        
+        # Check if THOR objects are already downloaded
+        thor_dir = Path.home() / '.cache' / 'molmo-spaces-resources' / 'objects' / 'thor' / '20251117'
+        
+        # Check if at least RoboTHOR Objects exist
+        robothor_dir = thor_dir / 'RoboTHOR Objects'
+        
+        if not robothor_dir.exists():
+            print("THOR objects not found locally. Downloading...")
+            print("This may take a few minutes (~500MB-1GB)...")
+            rm.install_all_for_source('objects', 'thor')
+            print("✓ THOR objects downloaded successfully!")
+        else:
+            print("✓ THOR objects already available locally.")
+            
+    except ImportError:
+        print("Warning: Could not import molmo_spaces. THOR objects may not be downloaded.")
+        print("If evaluation fails with 'not found in object sources' error, run:")
+        print("  python3 -c 'from molmo_spaces.utils.lazy_loading_utils import get_resource_manager; get_resource_manager().install_all_for_source(\"objects\", \"thor\")'")
+
+
 def create_minimal_episode(
     episode_id: int,
     house_index: int = 321,
@@ -143,8 +169,18 @@ def main():
         default=1,
         help="Number of episodes to generate"
     )
+    parser.add_argument(
+        "--skip_download",
+        action="store_true",
+        help="Skip automatic THOR object download check"
+    )
     
     args = parser.parse_args()
+    
+    # Ensure THOR objects are available before generating benchmark
+    if not args.skip_download:
+        ensure_thor_objects_downloaded()
+        print()  # Add blank line for readability
     
     generate_minimal_benchmark(args.output_path, args.num_episodes)
 
