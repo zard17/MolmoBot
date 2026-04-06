@@ -148,13 +148,13 @@ class SynthVLAPolicy(InferencePolicy, StatefulPolicy):
             goal = self.task.get_task_description()
 
         # Call agent
+        logger.info(f"[Step {self.step_count}] Calling agent for action chunk prediction...")
         pred_actions = self.agent.get_action_chunk(
             images=images,
             task_description=goal,
             state=state,
         )
-
-        # logger.info(f"Predicted action chunk: shape={pred_actions.shape}")
+        logger.info(f"[Step {self.step_count}] Predicted action chunk: shape={pred_actions.shape}")
 
         # Convert to list of action dicts and store in buffer
         self.action_buffer = []
@@ -172,7 +172,7 @@ class SynthVLAPolicy(InferencePolicy, StatefulPolicy):
             self.action_buffer.append(action)
 
         self.buffer_index = 0
-        # logger.info(f"Populated action buffer with {len(self.action_buffer)} actions")
+        logger.info(f"[Step {self.step_count}] Populated action buffer with {len(self.action_buffer)} actions")
 
     def obs_to_model_input(self, obs) -> dict[str, np.ndarray]:
         return obs
@@ -191,10 +191,14 @@ class SynthVLAPolicy(InferencePolicy, StatefulPolicy):
             self._populate_action_buffer(model_input)
 
         action = self.action_buffer[self.buffer_index]
-        # logger.info(f"Executing action {self.buffer_index}/{len(self.action_buffer)} (refresh at {self.execute_horizon})")
+        logger.info(f"[Step {self.step_count}] Executing action {self.buffer_index + 1}/{len(self.action_buffer)} (buffer will refresh at {self.execute_horizon} steps)")
 
         self.buffer_index += 1
         self.step_count += 1
+
+        # Log progress every 50 steps
+        if self.step_count % 50 == 0:
+            logger.info(f"[PROGRESS] Completed {self.step_count} steps")
 
         if self.action_type == "joint_pos_rel":
             predicted_deltas = action["arm"][:7]
