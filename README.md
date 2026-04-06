@@ -24,6 +24,8 @@ MolmoBot-DROID uses only the wrist camera and 1 exo camera. Don't worry about ca
 
 See [here](MolmoBot/README.md#demo-notebook) to try out MolmoBot interactively! Modify the scene and task to test policy behavior.
 
+For a reproducible Franka/DROID adoption check, use the [feasibility workflow](docs/franka_droid_feasibility.md). It adds a benchmark smoke-test launcher plus a small real-task suite runner on top of the existing MolmoBot and `robot_eval` entrypoints.
+
 ## Set up and run MolmoBot-DROID
 
 1. Set up MolmoBot-DROID by following the [installation instructions](MolmoBot/README.md).

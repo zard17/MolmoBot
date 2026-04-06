@@ -65,6 +65,14 @@ python launch_scripts/run_eval.py \
 `<molmo_space_benchmark>` is the path to the MolmoSpaces benchmark to evaluate on. Furthermore, `--use_filament` should be set to true or false depending on if the optional filement renderer is installed.
 For further information, see the MolmoSpaces documentation.
 
+For a lightweight adoption workflow that downloads the released checkpoint, records a run manifest, and runs a benchmark smoke test with the Franka/DROID defaults, use:
+
+```bash
+python launch_scripts/run_feasibility.py benchmark-smoke \
+  --benchmark-path <molmo_space_benchmark> \
+  --output-dir <output_dir>
+```
+
 To evaluate the official MolmoBot-DROID model, download it and provide to checkpoint_path.
 
 ## Training Franka Molmobot with init Molmo2-4B

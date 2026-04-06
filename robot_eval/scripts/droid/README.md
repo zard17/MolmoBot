@@ -79,3 +79,20 @@ To install and run the policy server for each policy class, see the correspondin
     ```
 
     NOTE: if you get `ffmpeg`/`ImageIO` errors, you may need to run `conda remove --force ffmpeg` and install it system-wide with `sudo apt install ffmpeg`.
+
+## Small feasibility suite
+
+If you want a small repeatable task suite instead of one manual task at a time, run:
+
+```bash
+cd MolmoBot/robot_eval
+conda activate molmobot
+python scripts/droid/run_feasibility_trials.py \
+  --robot-host <nuc_ip> \
+  --wrist-camera-id <wrist_id> \
+  --exo-camera-id <exo_id> \
+  --tasks-file config/feasibility_tasks_franka.txt \
+  --output-dir outputs/feasibility_run_01
+```
+
+This wraps `scripts/droid/run_policy.py`, keeps one Hydra output directory per task, and writes a `summary.json` after the suite completes.
