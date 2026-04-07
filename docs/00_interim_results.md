@@ -59,12 +59,13 @@
 | 벤치마크 | 에피소드 | Horizon | 성공률 | 비고 |
 |----------|---------|---------|--------|------|
 | Smoke (built-in 1ep) | 1 | 600 | **1/1 (100%)** | 기본 동작 확인 |
-| Pick-only DROID mini | 10 | 200 | **7/10 (70%)** | 현재 최강 sim 시그널 |
+| Pick-only DROID mini | 10 | 200 | **7/10 (70%)** | 현재 최강 Franka sim 시그널 |
 | Pick-and-place DROID mini | 10 | 300 | **미실행** | config mismatch로 차단 |
+| RBY1 door smoke (normalized 1ep) | 1 | 300 | **1/1 (100%)** | `MolmoBot-RBY1Multitask`, benchmark metadata normalize 후 end-to-end 완료 |
 
 Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.15, got 0.05` (벤치마크/config 호환성 이슈)
 
-**결론:** 가상 데이터만으로 학습한 정책이 pick 70% 성공. 다만 Franka/DROID 기준이며 horizon 200 단축이므로 참고치. 타겟 로봇(RBY1)에 대한 sim 벤치마크는 아직 미실행.
+**결론:** Franka/DROID에서 pick 70% 성공, 그리고 타겟 로봇 계열인 RBY1에서도 door smoke 1ep가 end-to-end 완료되었다. 다만 RBY1은 아직 1-episode smoke 수준이므로 성능 판단 근거로는 부족하고, door+open / pick-pnp 확장이 필요하다.
 
 ---
 
@@ -97,10 +98,10 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 > 가상 데이터 학습이 sim에서 non-trivial한 성능을 낸다 (Franka pick 70%). 더 깊이 검증할 가치가 있다.
 
 현재 근거가 **아직 지지하지 못하는** 결론:
-> 타겟 로봇(RBY1)의 sim 또는 실물 환경에서도 유효하다.
+> 타겟 로봇(RBY1)에서 broad benchmark 수준으로 유효하다.
 
 남은 질문:
-1. **RBY1 sim에서도 유사한 성능이 나오는가?** → 단기 검증 가능
+1. **RBY1 door+open / pick-pnp에서도 일관된 sim 성능이 나오는가?** → 단기 검증 가능
 2. **sim 성능이 실물 RBY1으로 전이되는가?** → 하드웨어 확보 후 검증
 
 ---
@@ -125,9 +126,10 @@ RBY1 sim 벤치마크 결과에 따라 경로를 결정한다.
 
 ### 단기 — 타겟 로봇(RBY1) 기준으로 sim 시그널 확보
 
-1. **RBY1 체크포인트로 sim 벤치마크 실행**
-   - `allenai/MolmoBot-RBY1Multitask`로 door opening, pick-and-place 등 벤치마크
-   - Franka 결과(pick 70%)는 참고치. **RBY1 결과가 나와야 의사결정 근거**
+1. **RBY1 smoke를 small benchmark로 확장**
+   - 완료: `allenai/MolmoBot-RBY1Multitask` + normalized door benchmark 1ep smoke (`1/1`)
+   - 다음: `MolmoBotRBY1DoorPlusOpenEvalConfig` 소규모 door/open slice, 이후 `MolmoBotRBY1PickPnPEvalConfig` smoke
+   - Franka 결과(pick 70%)는 참고치. **이제는 RBY1 coverage 확대가 의사결정의 핵심**
 
 2. **Franka pick-and-place config mismatch 해결** (선택, RBY1이 우선)
    - `max_place_receptacle_pos_displacement` 파라미터 불일치 수정
@@ -169,6 +171,7 @@ RBY1 sim 벤치마크 결과에 따라 경로를 결정한다.
 | [rollout_macos_cpu.mp4](./artifacts/molmobot_feasibility/rollout_macos_cpu.mp4) | 전체 롤아웃 (macOS CPU) |
 | [rollout_200_macos_cpu.mp4](./artifacts/molmobot_feasibility/rollout_200_macos_cpu.mp4) | 200-step 롤아웃 (macOS CPU) |
 | [sample_render_macos_cpu.png](./artifacts/molmobot_feasibility/sample_render_macos_cpu.png) | 시뮬레이션 렌더링 샘플 (macOS CPU) |
+| [rby1_door_smoke_20260407/README.md](./artifacts/molmobot_feasibility/rby1_door_smoke_20260407/README.md) | RBY1 door smoke 1ep 결과 요약 및 검증용 영상/log 링크 |
 
 ---
 
