@@ -62,10 +62,13 @@
 | Pick-only DROID mini | 10 | 200 | **7/10 (70%)** | 현재 최강 Franka sim 시그널 |
 | Pick-and-place DROID mini | 10 | 300 | **미실행** | config mismatch로 차단 |
 | RBY1 door smoke (normalized 1ep) | 1 | 300 | **1/1 (100%)** | `MolmoBot-RBY1Multitask`, benchmark metadata normalize 후 end-to-end 완료 |
+| RBY1 door small slice (reusable workflow) | 3 | 600 | **1/3 (33.3%)** | `run_feasibility.py` + normalized first-3 door slice로 재현 가능 |
+| RBY1 pnp small slice (reusable workflow) | 3 | 400 | **0/0 (미실행)** | task sampling blocked by `max_place_receptacle_pos_displacement` mismatch (`0.15` vs `0.1`) |
 
 Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.15, got 0.05` (벤치마크/config 호환성 이슈)
+RBY1 pnp 실패 원인: `Expected max_place_receptacle_pos_displacement=0.15, got 0.1` (released benchmark vs current config mismatch)
 
-**결론:** Franka/DROID에서 pick 70% 성공, 그리고 타겟 로봇 계열인 RBY1에서도 door smoke 1ep가 end-to-end 완료되었다. 다만 RBY1은 아직 1-episode smoke 수준이므로 성능 판단 근거로는 부족하고, door+open / pick-pnp 확장이 필요하다.
+**결론:** Franka/DROID에서 pick 70% 성공. RBY1에서는 1ep smoke를 넘어 reusable workflow로 3ep door slice를 측정했고 `1/3`까지 확인했다. 즉, 타겟 embodiment 기준의 반복 가능한 sim 검증 경로는 확보되었다. 반면 pnp는 정책 문제가 아니라 benchmark/config 호환성 이슈로 아직 rollout 단계에 진입하지 못했다.
 
 ---
 
@@ -101,8 +104,9 @@ Pick-and-place 실패 원인: `Expected max_place_receptacle_pos_displacement=0.
 > 타겟 로봇(RBY1)에서 broad benchmark 수준으로 유효하다.
 
 남은 질문:
-1. **RBY1 door+open / pick-pnp에서도 일관된 sim 성능이 나오는가?** → 단기 검증 가능
-2. **sim 성능이 실물 RBY1으로 전이되는가?** → 하드웨어 확보 후 검증
+1. **RBY1 door 성능이 3ep beyond에서 유지되는가?** → 즉시 확장 가능
+2. **RBY1 pnp config mismatch (`0.15` vs `0.1`)를 정렬하면 rollout이 실제로 실행되는가?** → 단기 수정 가능
+3. **sim 성능이 실물 RBY1으로 전이되는가?** → 하드웨어 확보 후 검증
 
 ---
 
@@ -126,28 +130,32 @@ RBY1 sim 벤치마크 결과에 따라 경로를 결정한다.
 
 ### 단기 — 타겟 로봇(RBY1) 기준으로 sim 시그널 확보
 
-1. **RBY1 smoke를 small benchmark로 확장**
-   - 완료: `allenai/MolmoBot-RBY1Multitask` + normalized door benchmark 1ep smoke (`1/1`)
-   - 다음: `MolmoBotRBY1DoorPlusOpenEvalConfig` 소규모 door/open slice, 이후 `MolmoBotRBY1PickPnPEvalConfig` smoke
-   - Franka 결과(pick 70%)는 참고치. **이제는 RBY1 coverage 확대가 의사결정의 핵심**
+1. **RBY1 reusable workflow를 benchmark coverage로 확장**
+   - 완료: `run_feasibility.py`가 normalized RBY1 small-slice workflow를 지원
+   - 완료: `MolmoBotRBY1DoorPlusOpenEvalConfig` first-3 door slice `1/3`
+   - 다음: door slice를 더 넓히거나 seed/episode count를 늘려 분산 확인
 
-2. **Franka pick-and-place config mismatch 해결** (선택, RBY1이 우선)
+2. **RBY1 pnp config mismatch 해결**
+   - 현재 blocker: `Expected max_place_receptacle_pos_displacement=0.15, got 0.1`
+   - released pnp benchmark와 현재 molmo_spaces config를 정렬한 뒤 `MolmoBotRBY1PickPnPEvalConfig`를 재실행
+
+3. **Franka pick-and-place config mismatch 해결** (선택, RBY1 다음)
    - `max_place_receptacle_pos_displacement` 파라미터 불일치 수정
 
-3. **학습 데이터 파이프라인 분석**
+4. **학습 데이터 파이프라인 분석**
    - 가상 데이터 규모/다양성/생성 비용, RBY1용 vs Franka용 차이점
    - 우리가 직접 데이터를 만들 수 있는지 판단하는 근거 확보
 
-4. **GPU JAX 활성화** (선택, 벤치마크 처리량이 병목일 때만)
+5. **GPU JAX 활성화** (선택, 벤치마크 처리량이 병목일 때만)
 
 ### 중기 — 실물 RBY1에서의 전이 검증
 
-5. **RBY1 하드웨어 확보 후 real-robot zero-shot trial**
+6. **RBY1 하드웨어 확보 후 real-robot zero-shot trial**
    - 카메라 구성 (wrist_r + head + wrist_l), observation/action contract 정의
    - `run_feasibility_trials.py`를 RBY1에 맞게 구성
    - **핵심 질문 "가상 데이터가 실물 RBY1에서도 도움이 되는가"의 직접적 답변**
 
-6. **결과에 따른 전략 판단**
+7. **결과에 따른 전략 판단**
    - **성공 시:** 가상 데이터 파이프라인 투자 정당화. RBY1용 데이터 생성 경로 구체화
    - **실패 시:** 원인 분류 (perception / camera / action / embodiment / task distribution) → 가상 데이터 자체의 한계인지 도메인 gap인지 구분 → sim+real 혼합 가능성 판단
 
@@ -172,6 +180,8 @@ RBY1 sim 벤치마크 결과에 따라 경로를 결정한다.
 | [rollout_200_macos_cpu.mp4](./artifacts/molmobot_feasibility/rollout_200_macos_cpu.mp4) | 200-step 롤아웃 (macOS CPU) |
 | [sample_render_macos_cpu.png](./artifacts/molmobot_feasibility/sample_render_macos_cpu.png) | 시뮬레이션 렌더링 샘플 (macOS CPU) |
 | [rby1_door_smoke_20260407/README.md](./artifacts/molmobot_feasibility/rby1_door_smoke_20260407/README.md) | RBY1 door smoke 1ep 결과 요약 및 검증용 영상/log 링크 |
+| [rby1_doorplusopen_small_20260407/README.md](./artifacts/molmobot_feasibility/rby1_doorplusopen_small_20260407/README.md) | reusable workflow 기반 RBY1 door 3ep 결과 (`1/3`) 및 대표 영상/log |
+| [rby1_pnp_blocker_20260407/README.md](./artifacts/molmobot_feasibility/rby1_pnp_blocker_20260407/README.md) | reusable workflow 기반 RBY1 pnp blocker 로그 및 manifest |
 
 ---
 

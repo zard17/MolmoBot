@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_HF_REPO = "allenai/MolmoBot-DROID"
+DEFAULT_RBY1_HF_REPO = "allenai/MolmoBot-RBY1Multitask"
 DEFAULT_EVAL_CONFIG = "olmo.eval.configure_molmo_spaces:FrankaState8ClampAbsPosConfig"
+DEFAULT_RBY1_SLICE_COUNT = 3
 
 
 def _resolve_checkpoint_path(
@@ -54,12 +56,70 @@ def _write_manifest(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n")
 
 
+def _looks_like_rby1_eval(eval_config_cls: str) -> bool:
+    return "MolmoBotRBY1" in eval_config_cls or "RBY1" in eval_config_cls
+
+
+def _parse_episode_indices(raw: str | None) -> list[int] | None:
+    if raw is None:
+        return None
+    indices = [chunk.strip() for chunk in raw.split(",") if chunk.strip()]
+    if not indices:
+        return []
+    return [int(chunk) for chunk in indices]
+
+
+def _slice_descriptor(episode_indices: list[int] | None, slice_count: int | None) -> str:
+    if episode_indices is not None:
+        return "indices_" + "_".join(str(idx) for idx in episode_indices)
+    if slice_count is not None:
+        return f"first_{slice_count}"
+    return "full"
+
+
+def _normalize_benchmark_if_requested(args: argparse.Namespace) -> tuple[Path, Path | None]:
+    benchmark_path = Path(args.benchmark_path).resolve()
+    if not args.normalize_rby1_benchmark:
+        return benchmark_path, None
+
+    try:
+        from launch_scripts.normalize_rby1_benchmark import normalize_benchmark
+    except ModuleNotFoundError:
+        from normalize_rby1_benchmark import normalize_benchmark
+
+    episode_indices = _parse_episode_indices(args.episode_indices)
+    slice_count = args.slice_count
+    if episode_indices is None and slice_count is None:
+        slice_count = DEFAULT_RBY1_SLICE_COUNT
+
+    normalized_dir = (
+        Path(args.normalized_benchmark_dir).resolve()
+        if args.normalized_benchmark_dir
+        else (
+            Path("/tmp/molmobot_rby1_benchmark_slices")
+            / benchmark_path.name
+            / _slice_descriptor(episode_indices, slice_count)
+        )
+    )
+    normalize_benchmark(
+        benchmark_path,
+        normalized_dir,
+        episode_indices=episode_indices,
+        slice_count=slice_count,
+    )
+    return normalized_dir, benchmark_path
+
+
 def run_benchmark_smoke(args: argparse.Namespace) -> None:
+    if args.hf_repo == DEFAULT_HF_REPO and _looks_like_rby1_eval(args.eval_config_cls):
+        args.hf_repo = DEFAULT_RBY1_HF_REPO
+
     checkpoint_path, checkpoint_source = _resolve_checkpoint_path(
         local_path=args.local_path,
         hf_repo=args.hf_repo,
         s3_path=args.s3_path,
     )
+    resolved_benchmark_path, source_benchmark_path = _normalize_benchmark_if_requested(args)
 
     output_dir = Path(args.output_dir).resolve() if args.output_dir else None
     manifest_path = (
@@ -74,12 +134,16 @@ def run_benchmark_smoke(args: argparse.Namespace) -> None:
         "repo_commit": _get_git_commit(Path(__file__).resolve().parents[2]),
         "checkpoint_source": checkpoint_source,
         "checkpoint_path": str(Path(checkpoint_path).resolve()),
-        "benchmark_path": str(Path(args.benchmark_path).resolve()),
+        "benchmark_path": str(resolved_benchmark_path),
+        "source_benchmark_path": str(source_benchmark_path) if source_benchmark_path else None,
         "eval_config_cls": args.eval_config_cls,
         "task_horizon": args.task_horizon,
         "num_workers": args.num_workers,
         "use_filament": args.use_filament,
         "environment_light_intensity": args.environment_light_intensity,
+        "normalize_rby1_benchmark": args.normalize_rby1_benchmark,
+        "episode_indices": _parse_episode_indices(args.episode_indices),
+        "slice_count": args.slice_count,
         "notes": args.notes,
     }
     if manifest_path is not None:
@@ -92,7 +156,7 @@ def run_benchmark_smoke(args: argparse.Namespace) -> None:
 
     results = run_evaluation(
         eval_config_cls=eval_config_cls,
-        benchmark_dir=Path(args.benchmark_path),
+        benchmark_dir=resolved_benchmark_path,
         checkpoint_path=Path(checkpoint_path),
         task_horizon_steps=args.task_horizon,
         output_dir=str(output_dir) if output_dir else None,
@@ -118,7 +182,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     smoke = subparsers.add_parser(
         "benchmark-smoke",
-        help="Run a Franka/DROID benchmark smoke test with a released MolmoBot checkpoint",
+        help="Run a reproducible benchmark smoke test with a released MolmoBot checkpoint",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     source_group = smoke.add_mutually_exclusive_group(required=False)
@@ -127,6 +191,29 @@ def build_parser() -> argparse.ArgumentParser:
     source_group.add_argument("--s3-path", type=str, help="S3 prefix containing a checkpoint")
     smoke.add_argument("--benchmark-path", type=str, required=True, help="Path to the MolmoSpaces JSON benchmark")
     smoke.add_argument("--eval-config-cls", type=str, default=DEFAULT_EVAL_CONFIG, help="Evaluation config class")
+    smoke.add_argument(
+        "--normalize-rby1-benchmark",
+        action="store_true",
+        help="Normalize released RBY1 benchmark metadata and optionally export a deterministic small slice",
+    )
+    smoke.add_argument(
+        "--normalized-benchmark-dir",
+        type=str,
+        default=None,
+        help="Optional output directory for the normalized/sliced benchmark",
+    )
+    smoke.add_argument(
+        "--slice-count",
+        type=int,
+        default=None,
+        help=f"Export the first N episodes when normalizing; defaults to {DEFAULT_RBY1_SLICE_COUNT} for RBY1 normalization",
+    )
+    smoke.add_argument(
+        "--episode-indices",
+        type=str,
+        default=None,
+        help="Comma-separated episode indices to export when normalizing",
+    )
     smoke.add_argument("--task-horizon", type=int, default=600, help="Maximum number of steps per episode")
     smoke.add_argument("--output-dir", type=str, default=None, help="Output directory for eval results")
     smoke.add_argument("--manifest-path", type=str, default=None, help="Optional path for run metadata")

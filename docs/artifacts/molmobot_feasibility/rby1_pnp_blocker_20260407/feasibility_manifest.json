@@ -1,0 +1,18 @@
+{
+  "mode": "benchmark_smoke",
+  "created_at_utc": "2026-04-07T01:37:22.613263+00:00",
+  "repo_commit": "622fa69cf5107fe3b7fd4266f1b95d33e356d789",
+  "checkpoint_source": "local",
+  "checkpoint_path": "/workspace/MolmoBot/MolmoBot/ckpts/molmobot/MolmoBot-RBY1Multitask",
+  "benchmark_path": "/tmp/molmobot_rby1_benchmark_slices/pnp_benchmark/first_3",
+  "source_benchmark_path": "/root/.cache/molmo-spaces-resources/benchmarks/molmospaces-bench-v2/20260325_1/procthor-objaverse/rby1_bennchmarks/pnp_benchmark",
+  "eval_config_cls": "olmo.eval.configure_molmo_spaces:MolmoBotRBY1PickPnPEvalConfig",
+  "task_horizon": 400,
+  "num_workers": 1,
+  "use_filament": false,
+  "environment_light_intensity": null,
+  "normalize_rby1_benchmark": true,
+  "episode_indices": null,
+  "slice_count": 3,
+  "notes": "RBY1 pnp small-slice validation via reusable feasibility runner"
+}

@@ -180,6 +180,63 @@ MUJOCO_GL=egl PYOPENGL_PLATFORM=egl JAX_PLATFORMS=cpu \
 
 해석: RBY1 path는 더 이상 startup/config 수준에서 막히지 않는다. normalized benchmark 기준으로 first rollout부터 episode save까지 end-to-end 완료했다. 다음 검증은 1ep smoke가 아니라 small-slice door/open 및 pick-pnp coverage 확대다.
 
+### RBY1 door small slice (reusable workflow, 3 에피소드)
+
+`run_feasibility.py`에 RBY1 benchmark normalize + deterministic slice export를 붙인 뒤, 같은 checkpoint로 3ep door slice를 반복 가능한 방식으로 실행했다.
+
+```bash
+cd /workspace/MolmoBot/MolmoBot
+
+MUJOCO_GL=egl PYOPENGL_PLATFORM=egl JAX_PLATFORMS=cpu \
+./.venv/bin/python launch_scripts/run_feasibility.py benchmark-smoke \
+  --local-path /workspace/MolmoBot/MolmoBot/ckpts/molmobot/MolmoBot-RBY1Multitask \
+  --benchmark-path /root/.cache/molmo-spaces-resources/benchmarks/molmospaces-bench-v2/20260325_1/ithor/rby1_bennchmarks/door_opening_benchmark \
+  --eval-config-cls olmo.eval.configure_molmo_spaces:MolmoBotRBY1DoorPlusOpenEvalConfig \
+  --normalize-rby1-benchmark \
+  --slice-count 3 \
+  --output-dir /tmp/molmobot_rby1_doorplusopen_small_20260407 \
+  --num-workers 1
+```
+
+| 항목 | 결과 |
+|------|------|
+| 성공 | 1 |
+| 전체 | 3 |
+| 성공률 | **33.3%** |
+| 태스크 | door opening only (released door benchmark first-3) |
+| 비고 | normalized benchmark + manifest + eval output이 한 workflow로 재현됨 |
+
+해석: RBY1 door path는 이제 ad hoc command가 아니라 reusable workflow로 재현 가능하다. 성능 시그널은 `1/3`로 non-zero이지만 아직 sample 수가 작다.
+
+### RBY1 pnp small slice (reusable workflow, blocker 확인)
+
+같은 reusable workflow를 `MolmoBotRBY1PickPnPEvalConfig`와 released `pnp_benchmark` first-3 slice에 적용했다.
+
+```bash
+cd /workspace/MolmoBot/MolmoBot
+
+MUJOCO_GL=egl PYOPENGL_PLATFORM=egl JAX_PLATFORMS=cpu \
+./.venv/bin/python launch_scripts/run_feasibility.py benchmark-smoke \
+  --local-path /workspace/MolmoBot/MolmoBot/ckpts/molmobot/MolmoBot-RBY1Multitask \
+  --benchmark-path /root/.cache/molmo-spaces-resources/benchmarks/molmospaces-bench-v2/20260325_1/procthor-objaverse/rby1_bennchmarks/pnp_benchmark \
+  --eval-config-cls olmo.eval.configure_molmo_spaces:MolmoBotRBY1PickPnPEvalConfig \
+  --normalize-rby1-benchmark \
+  --slice-count 3 \
+  --task-horizon 400 \
+  --output-dir /tmp/molmobot_rby1_pnp_small_20260407 \
+  --num-workers 1
+```
+
+| 항목 | 결과 |
+|------|------|
+| 성공 | 0 |
+| 전체 | 0 |
+| 성공률 | **0.0% (미실행)** |
+| 실패 단계 | task sampling |
+| 실패 원인 | `Expected max_place_receptacle_pos_displacement=0.15, got 0.1` |
+
+해석: reusable workflow 자체는 정상 동작했다. pnp는 policy rollout 전 단계에서 released benchmark와 current config 간 parameter mismatch가 재현성 있게 드러난 상태다. 다음 수정 대상은 workflow가 아니라 pnp task/config compatibility다.
+
 ---
 
 ## 출력 경로
@@ -194,6 +251,12 @@ MUJOCO_GL=egl PYOPENGL_PLATFORM=egl JAX_PLATFORMS=cpu \
 | PnP log | `/tmp/molmobot_franka_pnp10/FrankaState8ClampAbsPosConfig/20260406_164116/running_log.log` |
 | RBY1 smoke log | `/tmp/molmobot_rby1_door_smoke_20260407_impl1/MolmoBotRBY1DoorEvalConfig/20260407_002159/running_log.log` |
 | RBY1 smoke artifacts (repo copy) | `docs/artifacts/molmobot_feasibility/rby1_door_smoke_20260407/` |
+| RBY1 door small-slice manifest | `/tmp/molmobot_rby1_doorplusopen_small_20260407/feasibility_manifest.json` |
+| RBY1 door small-slice log | `/tmp/molmobot_rby1_doorplusopen_small_20260407/MolmoBotRBY1DoorPlusOpenEvalConfig/20260407_011148/running_log.log` |
+| RBY1 door small-slice artifacts (repo copy) | `docs/artifacts/molmobot_feasibility/rby1_doorplusopen_small_20260407/` |
+| RBY1 pnp blocker manifest | `/tmp/molmobot_rby1_pnp_small_20260407/feasibility_manifest.json` |
+| RBY1 pnp blocker log | `/tmp/molmobot_rby1_pnp_small_20260407/MolmoBotRBY1PickPnPEvalConfig/20260407_013852/running_log.log` |
+| RBY1 pnp blocker artifacts (repo copy) | `docs/artifacts/molmobot_feasibility/rby1_pnp_blocker_20260407/` |
 
 ---
 
