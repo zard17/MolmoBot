@@ -147,6 +147,39 @@ MUJOCO_GL=egl PYOPENGL_PLATFORM=egl \
 
 해석: 벤치마크/config 호환성 이슈. MolmoBot 정책 성능과 무관. 해결 전까지 pick-only 결과를 기준으로 사용.
 
+### RBY1 door smoke (normalized 1 에피소드)
+
+released RBY1 door benchmark는 legacy task class path와 missing `task_type` 때문에 그대로는 실행되지 않았다. 아래 순서로 normalize 후 `MolmoBot-RBY1Multitask` smoke를 수행했다.
+
+```bash
+cd /workspace/MolmoBot/MolmoBot
+
+./.venv/bin/python launch_scripts/normalize_rby1_benchmark.py \
+  --input-dir /root/.cache/molmo-spaces-resources/benchmarks/molmospaces-bench-v2/20260325_1/ithor/rby1_bennchmarks/door_opening_benchmark \
+  --output-dir /tmp/rby1_door_smoke_norm_1ep \
+  --episode-idx 0
+
+MUJOCO_GL=egl PYOPENGL_PLATFORM=egl JAX_PLATFORMS=cpu \
+./.venv/bin/python -m molmo_spaces.evaluation.eval_main \
+  olmo.eval.configure_molmo_spaces:MolmoBotRBY1DoorEvalConfig \
+  --benchmark_dir /tmp/rby1_door_smoke_norm_1ep \
+  --checkpoint_path /workspace/MolmoBot/MolmoBot/ckpts/molmobot/MolmoBot-RBY1Multitask \
+  --task_horizon_steps 300 \
+  --output_dir /tmp/molmobot_rby1_door_smoke_20260407_impl1 \
+  --num_workers 1 \
+  --no_wandb
+```
+
+| 항목 | 결과 |
+|------|------|
+| 성공 | 1 |
+| 전체 | 1 |
+| 성공률 | **100%** |
+| 태스크 | Pull the door open |
+| 비고 | 기존 `19D` door alias 대신 multitask `20D action / 22D state` contract로 정렬, RBY1 grouped action path 정상 통과 |
+
+해석: RBY1 path는 더 이상 startup/config 수준에서 막히지 않는다. normalized benchmark 기준으로 first rollout부터 episode save까지 end-to-end 완료했다. 다음 검증은 1ep smoke가 아니라 small-slice door/open 및 pick-pnp coverage 확대다.
+
 ---
 
 ## 출력 경로
@@ -159,6 +192,8 @@ MUJOCO_GL=egl PYOPENGL_PLATFORM=egl \
 | Pick-only log | `/tmp/molmobot_franka_pick10/FrankaState8ClampAbsPosConfig/20260406_164652/running_log.log` |
 | PnP manifest | `/tmp/molmobot_franka_pnp10/feasibility_manifest.json` |
 | PnP log | `/tmp/molmobot_franka_pnp10/FrankaState8ClampAbsPosConfig/20260406_164116/running_log.log` |
+| RBY1 smoke log | `/tmp/molmobot_rby1_door_smoke_20260407_impl1/MolmoBotRBY1DoorEvalConfig/20260407_002159/running_log.log` |
+| RBY1 smoke artifacts (repo copy) | `docs/artifacts/molmobot_feasibility/rby1_door_smoke_20260407/` |
 
 ---
 
@@ -170,4 +205,4 @@ MUJOCO_GL=egl PYOPENGL_PLATFORM=egl \
 
 ---
 
-*기록일: 2026-04-06 / 환경: Ubuntu 22.04, NVIDIA A100 SXM 80GB, Python 3.11*
+*기록일: 2026-04-07 / 환경: Ubuntu 22.04, NVIDIA A100 SXM 80GB, Python 3.11*
