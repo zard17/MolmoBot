@@ -70,16 +70,34 @@ curl http://<gpu-server>:8000/healthz
 
 ## 2. ACT 팀 작업 목록
 
-### 2a. RBY1 모델 확보 및 로드 (가장 중요)
+### 2a. RBY1 URDF 확보 및 로드
 
-MolmoBot은 MuJoCo MJCF 형식으로 RBY1을 사용. **URDF 파일이 레포에 없음.**
+`molmo_spaces` 에셋 번들에 **Isaac Sim 전용 URDF + OBJ 메쉬**가 이미 포함되어 있음.
 
-옵션:
-1. Rainbow Robotics에서 공식 RBY1 URDF 확보
-2. MuJoCo MJCF → URDF 변환 (mujoco 라이브러리의 `mj_saveLastXML` + 변환 도구)
-3. `molmo_spaces` 패키지에서 MJCF 모델 추출 후 변환
+**다운로드 방법** (MolmoBot venv에서):
 
-Isaac Sim에 로드 후 **관절 이름을 확인하고 `config.py`의 `joint_groups`를 업데이트**해야 함.
+```python
+# molmospaces_resources가 자동으로 다운로드 + 캐시
+from molmo_spaces.molmo_spaces_constants import ASSETS_DIR
+
+# 또는 직접 캐시 경로 확인:
+#   ~/.cache/molmo-spaces-resources/robots/rby1m/20251224/
+```
+
+**Isaac Sim 전용 URDF 경로:**
+```
+~/.cache/molmo-spaces-resources/robots/rby1m/20251224/curobo_config/urdf/model_holobase_isaac/
+├── model_holobase_isaac.urdf   # Isaac Sim용 URDF (38KB)
+├── base_spheres.yaml           # CuRobo 충돌 구
+└── meshes/                     # 31개 .obj 메쉬 파일
+```
+
+**일반 URDF와 Isaac 버전 차이점:**
+- 메쉬 포맷: `.dae` (Collada) → `.obj` (Isaac Sim 호환)
+- world 링크: MuJoCo용 5mm 높이 오프셋 제거
+- 관절 이름/구조/관성값: **동일**
+
+이 URDF를 Isaac Sim URDF Importer로 바로 로드하면 됨. 관절 이름이 MolmoBot 학습 환경과 동일하므로 `config.py` 수정 불필요.
 
 ### 2b. MuJoCo 관절 이름 참조 (확인 완료)
 
@@ -131,8 +149,9 @@ MolmoBot이 기대하는 3개 카메라:
 ## 3. 통합 체크리스트
 
 ```
-[ ] RBY1 URDF/USD를 Isaac Sim에 로드
-[ ] 관절 이름 확인 → config.py 업데이트
+[ ] molmo_spaces 캐시에서 Isaac URDF 복사 (섹션 2a 참조)
+[ ] Isaac Sim URDF Importer로 로드 → USD 변환
+[ ] 관절 이름 확인 (config.py와 일치하는지 — 변경 불필요할 것으로 예상)
 [ ] 카메라 3개 배치 (wrist_r, wrist_l, head)
 [ ] ROS 2 카메라 퍼블리셔 설정
 [ ] ROS 2 JointState 퍼블리셔 설정

@@ -23,8 +23,10 @@ def load_rby1_usd(
 
     Args:
         urdf_path: Path to the RBY1 URDF file.
-            Check: MolmoBot/.venv/lib/.../molmo_spaces/assets/robots/rby1m/
-            or download from the RBY1 manufacturer.
+            Isaac Sim variant available at:
+            ~/.cache/molmo-spaces-resources/robots/rby1m/20251224/
+              curobo_config/urdf/model_holobase_isaac/model_holobase_isaac.urdf
+            Meshes (.obj) are in the meshes/ subdirectory alongside the URDF.
         stage_path: USD stage path for the robot prim.
 
     Returns:
