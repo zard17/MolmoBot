@@ -42,6 +42,8 @@ class SynthVLAPolicy(InferencePolicy, StatefulPolicy):
         self.action_horizon = config.policy_config.action_horizon
         self.execute_horizon = config.policy_config.execute_horizon
         self.action_type = config.policy_config.action_type
+        self.clamp_gripper = getattr(config.policy_config, "clamp_gripper", False)
+        self.gripper_threshold = getattr(config.policy_config, "gripper_threshold", 0.0)
         self.relative_max_joint_delta = config.policy_config.relative_max_joint_delta
         if self.relative_max_joint_delta is not None:
             self.relative_max_joint_delta = np.array(self.relative_max_joint_delta)
@@ -649,6 +651,10 @@ class MolmoBotRBY1PolicyConfig(SynthVLARBY1PolicyConfig):
     use_point_prompts: bool = True
     point_prompt_camera: str = "head_camera"
     max_conditioning_points: int = 10  # max points per object in prompt
+
+    # Match the shared MolmoBot policy wrapper contract used by Franka evals.
+    states_mode: str = "cross_attn"
+    relative_max_joint_delta: list[float] | None = None
 
     def model_post_init(self, __context) -> None:
         if self.policy_cls is None:
