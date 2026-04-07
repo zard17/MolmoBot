@@ -38,45 +38,45 @@ class ACTBridgeConfig:
     joint_command_topic: str = "/rby1/joint_commands"
 
     # -- Isaac Sim joint name → MolmoBot qpos group mapping --
-    # TODO: Confirm joint names after loading RBY1 URDF into Isaac Sim.
-    # These are placeholder names based on typical RBY1 URDF conventions.
+    # MuJoCo joint names from molmo_spaces/robots/robot_views/rby1_view.py.
+    # Isaac Sim names may differ after URDF/USD import — confirm and update.
     joint_groups: dict[str, list[str]] = field(default_factory=lambda: {
         "base": [
-            "base_x_joint",
-            "base_y_joint",
-            "base_rz_joint",
+            "base_x",       # holonomic base x
+            "base_y",       # holonomic base y
+            "base_theta",   # holonomic base yaw
         ],
         "left_arm": [
-            "left_shoulder_pitch_joint",
-            "left_shoulder_roll_joint",
-            "left_shoulder_yaw_joint",
-            "left_elbow_pitch_joint",
-            "left_wrist_yaw_joint",
-            "left_wrist_pitch_joint",
-            "left_wrist_roll_joint",
+            "left_arm_0",
+            "left_arm_1",
+            "left_arm_2",
+            "left_arm_3",
+            "left_arm_4",
+            "left_arm_5",
+            "left_arm_6",
         ],
         "left_gripper": [
-            "left_gripper_joint",
+            "gripper_finger_l1",  # 2 coupled fingers, use finger 1 as control
         ],
         "right_arm": [
-            "right_shoulder_pitch_joint",
-            "right_shoulder_roll_joint",
-            "right_shoulder_yaw_joint",
-            "right_elbow_pitch_joint",
-            "right_wrist_yaw_joint",
-            "right_wrist_pitch_joint",
-            "right_wrist_roll_joint",
+            "right_arm_0",
+            "right_arm_1",
+            "right_arm_2",
+            "right_arm_3",
+            "right_arm_4",
+            "right_arm_5",
+            "right_arm_6",
         ],
         "right_gripper": [
-            "right_gripper_joint",
+            "gripper_finger_r1",  # 2 coupled fingers, use finger 1 as control
         ],
         "torso": [
-            "torso_joint_0",
-            "torso_joint_1",
-            "torso_joint_2",
-            "torso_joint_3",
-            "torso_joint_4",
-            "torso_joint_5",
+            "torso_0",
+            "torso_1",
+            "torso_2",
+            "torso_3",
+            "torso_4",
+            "torso_5",
         ],
     })
 
