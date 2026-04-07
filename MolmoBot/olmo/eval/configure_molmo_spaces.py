@@ -198,6 +198,9 @@ class SynthVLAPolicy(InferencePolicy, StatefulPolicy):
         self.buffer_index += 1
         self.step_count += 1
 
+        if self.relative_max_joint_delta is None or "arm" not in action:
+            return action
+
         if self.action_type == "joint_pos_rel":
             predicted_deltas = action["arm"][:7]
 
@@ -675,9 +678,6 @@ class MolmoBotRBY1EvalConfig(SynthVLARBY1EvalConfig):
     camera_config: RBY1GoProD455CameraSystem = RBY1GoProD455CameraSystem()
 
 
-# Backwards compat aliases
-MolmoBotRBY1DoorEvalConfig = MolmoBotRBY1EvalConfig
-MolmoBotRBY1DoorPolicyConfig = MolmoBotRBY1PolicyConfig
 
 
 # ── MolmoBot RBY1 Multitask (Door+Open, Pick+PnP) ──────────────────────
@@ -919,3 +919,9 @@ class MolmoBotRBY1PickPnPEvalConfig(MolmoBotRBY1EvalConfig):
         super().model_post_init(__context)
         # Model outputs 1D torso action → use "height" mode (scalar → 6D joint mapping)
         self.robot_config.command_mode["torso"] = "height"
+
+
+# Backwards compat aliases for the released multitask checkpoint.
+# Door eval uses the torso-inclusive door+open contract (20D action / 22D state).
+MolmoBotRBY1DoorEvalConfig = MolmoBotRBY1DoorPlusOpenEvalConfig
+MolmoBotRBY1DoorPolicyConfig = MolmoBotRBY1DoorPlusOpenPolicyConfig
