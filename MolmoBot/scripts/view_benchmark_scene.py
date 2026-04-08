@@ -75,13 +75,66 @@ def build_scene():
         conaffinity=15,
     )
 
-    # --- Furniture (static) ---
-    # Desk: z=0.33 (slightly above computed 0.313 to avoid ground penetration)
-    attach_static(spec, "RoboTHOR_desk_lisabo", pos=[0.8, 0.55, 0.33], prefix="desk/")
+    # --- Furniture (MuJoCo primitives for clean collision) ---
+    # Thor furniture assets have oversized collision boxes that cause penetration.
+    # Build desk and bookcase from MuJoCo box geoms instead.
 
-    # Bookcase: z=1.05 (slightly above computed 1.028 to avoid ground penetration)
-    shelf_quat = (R.from_euler("z", 180, degrees=True) * R.from_euler("x", 90, degrees=True)).as_quat(scalar_first=True)
-    attach_static(spec, "Shelving_Unit_206_1", pos=[0.55, -0.5, 1.05], quat=shelf_quat, prefix="bookcase/")
+    # Desk: 1.0m wide, 0.5m deep, 0.02m thick top, 0.72m tall
+    desk_body = spec.worldbody.add_body(name="desk", pos=[0.75, 0.45, 0.0])
+    # Table top
+    desk_body.add_geom(
+        name="desk_top", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.5, 0.25, 0.015], pos=[0, 0, 0.72],
+        rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15,
+    )
+    # Four legs
+    for lx, ly, ln in [(-0.45, -0.2, "fl"), (0.45, -0.2, "fr"), (-0.45, 0.2, "bl"), (0.45, 0.2, "br")]:
+        desk_body.add_geom(
+            name=f"desk_leg_{ln}", type=mujoco.mjtGeom.mjGEOM_BOX,
+            size=[0.02, 0.02, 0.36], pos=[lx, ly, 0.36],
+            rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15,
+        )
+
+    # Bookcase: 0.6m wide, 0.3m deep, 1.6m tall, open front facing +Y (toward robot)
+    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.55, -0.5, 0.0])
+    bc_color = [0.7, 0.6, 0.4, 1.0]
+    # Back panel
+    bc_body.add_geom(
+        name="bc_back", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.3, 0.01, 0.8], pos=[0, -0.14, 0.8],
+        rgba=bc_color, contype=8, conaffinity=15,
+    )
+    # Left side
+    bc_body.add_geom(
+        name="bc_left", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.01, 0.15, 0.8], pos=[-0.29, 0, 0.8],
+        rgba=bc_color, contype=8, conaffinity=15,
+    )
+    # Right side
+    bc_body.add_geom(
+        name="bc_right", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.01, 0.15, 0.8], pos=[0.29, 0, 0.8],
+        rgba=bc_color, contype=8, conaffinity=15,
+    )
+    # Bottom shelf
+    bc_body.add_geom(
+        name="bc_bottom", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.29, 0.15, 0.01], pos=[0, 0, 0.01],
+        rgba=bc_color, contype=8, conaffinity=15,
+    )
+    # Shelves at 0.4, 0.8, 1.2m
+    for si, sz in enumerate([0.4, 0.8, 1.2]):
+        bc_body.add_geom(
+            name=f"bc_shelf_{si}", type=mujoco.mjtGeom.mjGEOM_BOX,
+            size=[0.29, 0.15, 0.01], pos=[0, 0, sz],
+            rgba=bc_color, contype=8, conaffinity=15,
+        )
+    # Top
+    bc_body.add_geom(
+        name="bc_top", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.3, 0.15, 0.01], pos=[0, 0, 1.6],
+        rgba=bc_color, contype=8, conaffinity=15,
+    )
 
     # --- Robot ---
     robot_config = FrankaRobotConfig(base_size=[0.5, 0.5, 0.75])
@@ -99,17 +152,17 @@ def build_scene():
     )
 
     # --- Manipulable objects (dynamic) ---
-    # Actual desk surface top is at z ≈ 0.91 (measured from geom pos + size)
-    desk_top_z = 0.93  # 0.91 + small margin
+    # Desk top at z = 0.735 (0.72 + 0.015 half-thickness)
+    desk_top_z = 0.75  # desk pos[2]=0 + geom z=0.72 + size_z=0.015 + margin
 
     # Tissue box on the desk
-    attach_dynamic(spec, "Tissue_Box_1", pos=[0.7, 0.5, desk_top_z + 0.04], prefix="pickup_object/")
+    attach_dynamic(spec, "Tissue_Box_1", pos=[0.65, 0.45, desk_top_z + 0.04], prefix="pickup_object/")
 
     # Pencil on the desk
-    attach_dynamic(spec, "Pencil_1", pos=[0.7, 0.35, desk_top_z + 0.02], prefix="pickup_pencil/")
+    attach_dynamic(spec, "Pencil_1", pos=[0.8, 0.35, desk_top_z + 0.02], prefix="pickup_pencil/")
 
     # Cup on the desk
-    attach_dynamic(spec, "Cup_5", pos=[0.6, 0.6, desk_top_z + 0.08], prefix="place_receptacle/")
+    attach_dynamic(spec, "Cup_5", pos=[0.85, 0.55, desk_top_z + 0.08], prefix="place_receptacle/")
 
     # Compile
     model = spec.compile()
