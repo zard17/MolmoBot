@@ -87,6 +87,7 @@ python run_eval_with_glfw.py \
     --eval_config_cls olmo.eval.configure_molmo_spaces:FrankaState8ClampAbsPosConfig \
     --task_horizon 600 \
     --output_dir ./minimal_eval_results
+    --use-filament
 ```
 
 첫 실행 시 다음이 표시됩니다:
