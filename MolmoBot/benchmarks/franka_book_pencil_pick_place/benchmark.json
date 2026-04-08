@@ -1,0 +1,334 @@
+[
+  {
+    "source": null,
+    "house_index": 0,
+    "scene_dataset": "procthor-10k",
+    "data_split": "val",
+    "seed": null,
+    "robot": {
+      "robot_name": "franka_droid",
+      "init_qpos": {
+        "base": [],
+        "arm": [
+          0.0,
+          -0.785,
+          0.0,
+          -2.356,
+          0.0,
+          1.571,
+          0.785
+        ],
+        "gripper": [
+          0.003,
+          0.003
+        ]
+      }
+    },
+    "img_resolution": [
+      624,
+      352
+    ],
+    "cameras": [
+      {
+        "name": "wrist_camera",
+        "type": "robot_mounted",
+        "reference_body_names": [
+          "robot_0/gripper/base"
+        ],
+        "camera_offset": [
+          0.031,
+          0.074,
+          0.022
+        ],
+        "lookat_offset": [
+          0.0,
+          0.0,
+          0.08
+        ],
+        "camera_quaternion": [
+          -0.0056,
+          -0.001,
+          0.9856,
+          0.169
+        ],
+        "fov": 56.74,
+        "record_depth": false
+      },
+      {
+        "name": "exo_camera_1",
+        "type": "robot_mounted",
+        "reference_body_names": [
+          "robot_0/fr3_link0"
+        ],
+        "camera_offset": [
+          0.1,
+          0.57,
+          0.66
+        ],
+        "lookat_offset": [
+          0.0,
+          0.0,
+          0.08
+        ],
+        "camera_quaternion": [
+          -0.3633,
+          -0.1241,
+          0.4263,
+          0.8191
+        ],
+        "fov": 71.0,
+        "record_depth": false
+      }
+    ],
+    "scene_modifications": {
+      "added_objects": {
+        "pickup_object/Mug_1": "objects/thor/Kitchen Objects/Mug/Prefabs/Mug_1/Mug_1.xml",
+        "place_receptacle/Shelving_Unit_206_1": "objects/thor/Common Objects/ShelvingUnit/Prefabs/Shelving_Unit_206_1/Shelving_Unit_206_1.xml"
+      },
+      "object_poses": {
+        "pickup_object/Mug_1": [
+          6.5,
+          10.1,
+          0.5310090280923844,
+          0.7071067811865476,
+          0.7071067811865475,
+          0.0,
+          0.0
+        ],
+        "place_receptacle/Shelving_Unit_206_1": [
+          7.3,
+          10.2,
+          1.1013011932373047,
+          0.7071067811865476,
+          0.7071067811865475,
+          0.0,
+          0.0
+        ]
+      },
+      "removed_objects": []
+    },
+    "task": {
+      "task_cls": "molmo_spaces.tasks.pick_and_place_task.PickAndPlaceTask",
+      "task_type": "pick_and_place",
+      "robot_base_pose": [
+        6.8,
+        9.75,
+        0.0,
+        0.7071067811865476,
+        0.0,
+        0.0,
+        0.7071067811865475
+      ],
+      "pickup_obj_name": "pickup_object/Mug_1",
+      "pickup_obj_start_pose": [
+        6.5,
+        10.1,
+        0.5310090280923844,
+        0.7071067811865476,
+        0.7071067811865475,
+        0.0,
+        0.0
+      ],
+      "pickup_obj_goal_pose": [
+        6.5,
+        10.1,
+        0.5810090280923844,
+        0.7071067811865476,
+        0.7071067811865475,
+        0.0,
+        0.0
+      ],
+      "succ_pos_threshold": 0.03,
+      "place_receptacle_name": "place_receptacle/Shelving_Unit_206_1",
+      "place_receptacle_start_pose": [
+        7.3,
+        10.2,
+        1.1013011932373047,
+        0.7071067811865476,
+        0.7071067811865475,
+        0.0,
+        0.0
+      ],
+      "receptacle_supported_weight_frac": 0.5,
+      "max_place_receptacle_pos_displacement": 0.15,
+      "max_place_receptacle_rot_displacement": 1.0471975511965976
+    },
+    "task_relevant_objects": [
+      "pickup_object/Mug_1",
+      "place_receptacle/Shelving_Unit_206_1"
+    ],
+    "language": {
+      "task_description": "Pick up the mug and place it on the shelf",
+      "referral_expressions": {
+        "pickup_name": "mug",
+        "place_name": "shelf"
+      }
+    }
+  },
+  {
+    "source": null,
+    "house_index": 0,
+    "scene_dataset": "procthor-10k",
+    "data_split": "val",
+    "seed": null,
+    "robot": {
+      "robot_name": "franka_droid",
+      "init_qpos": {
+        "base": [],
+        "arm": [
+          0.0,
+          -0.785,
+          0.0,
+          -2.356,
+          0.0,
+          1.571,
+          0.785
+        ],
+        "gripper": [
+          0.003,
+          0.003
+        ]
+      }
+    },
+    "img_resolution": [
+      624,
+      352
+    ],
+    "cameras": [
+      {
+        "name": "wrist_camera",
+        "type": "robot_mounted",
+        "reference_body_names": [
+          "robot_0/gripper/base"
+        ],
+        "camera_offset": [
+          0.031,
+          0.074,
+          0.022
+        ],
+        "lookat_offset": [
+          0.0,
+          0.0,
+          0.08
+        ],
+        "camera_quaternion": [
+          -0.0056,
+          -0.001,
+          0.9856,
+          0.169
+        ],
+        "fov": 56.74,
+        "record_depth": false
+      },
+      {
+        "name": "exo_camera_1",
+        "type": "robot_mounted",
+        "reference_body_names": [
+          "robot_0/fr3_link0"
+        ],
+        "camera_offset": [
+          0.1,
+          0.57,
+          0.66
+        ],
+        "lookat_offset": [
+          0.0,
+          0.0,
+          0.08
+        ],
+        "camera_quaternion": [
+          -0.3633,
+          -0.1241,
+          0.4263,
+          0.8191
+        ],
+        "fov": 71.0,
+        "record_depth": false
+      }
+    ],
+    "scene_modifications": {
+      "added_objects": {
+        "pickup_object/Pencil_1": "objects/thor/Bedroom Objects/Pencil/Prefabs/Pencil_1/Pencil_1.xml",
+        "place_receptacle/Cup_5": "objects/thor/Kitchen Objects/Cup/Prefabs/Cup_5/Cup_5.xml"
+      },
+      "object_poses": {
+        "pickup_object/Pencil_1": [
+          6.6,
+          10.15,
+          0.4839188073616326,
+          0.7071067811865476,
+          0.7071067811865475,
+          0.0,
+          0.0
+        ],
+        "place_receptacle/Cup_5": [
+          6.9,
+          10.1,
+          0.5511699117574692,
+          0.7071067811865476,
+          0.7071067811865475,
+          0.0,
+          0.0
+        ]
+      },
+      "removed_objects": []
+    },
+    "task": {
+      "task_cls": "molmo_spaces.tasks.pick_and_place_task.PickAndPlaceTask",
+      "task_type": "pick_and_place",
+      "robot_base_pose": [
+        6.8,
+        9.75,
+        0.0,
+        0.7071067811865476,
+        0.0,
+        0.0,
+        0.7071067811865475
+      ],
+      "pickup_obj_name": "pickup_object/Pencil_1",
+      "pickup_obj_start_pose": [
+        6.6,
+        10.15,
+        0.4839188073616326,
+        0.7071067811865476,
+        0.7071067811865475,
+        0.0,
+        0.0
+      ],
+      "pickup_obj_goal_pose": [
+        6.6,
+        10.15,
+        0.5339188073616327,
+        0.7071067811865476,
+        0.7071067811865475,
+        0.0,
+        0.0
+      ],
+      "succ_pos_threshold": 0.03,
+      "place_receptacle_name": "place_receptacle/Cup_5",
+      "place_receptacle_start_pose": [
+        6.9,
+        10.1,
+        0.5511699117574692,
+        0.7071067811865476,
+        0.7071067811865475,
+        0.0,
+        0.0
+      ],
+      "receptacle_supported_weight_frac": 0.5,
+      "max_place_receptacle_pos_displacement": 0.15,
+      "max_place_receptacle_rot_displacement": 1.0471975511965976
+    },
+    "task_relevant_objects": [
+      "pickup_object/Pencil_1",
+      "place_receptacle/Cup_5"
+    ],
+    "language": {
+      "task_description": "Pick up the pencil and put it in the cup",
+      "referral_expressions": {
+        "pickup_name": "pencil",
+        "place_name": "cup"
+      }
+    }
+  }
+]
