@@ -154,18 +154,46 @@ def run_benchmark_smoke(args: argparse.Namespace) -> None:
 
     from molmo_spaces.evaluation.eval_main import run_evaluation
 
-    results = run_evaluation(
-        eval_config_cls=eval_config_cls,
-        benchmark_dir=resolved_benchmark_path,
-        checkpoint_path=Path(checkpoint_path),
-        task_horizon_steps=args.task_horizon,
-        output_dir=str(output_dir) if output_dir else None,
-        num_workers=args.num_workers,
-        use_wandb=args.use_wandb,
-        wandb_project=args.wandb_project,
-        use_filament=args.use_filament,
-        environment_light_intensity=args.environment_light_intensity,
-    )
+    # --- Optional real-time frame streaming ---
+    preloaded_policy = None
+    streamer = None
+
+    if args.stream_port is not None:
+        if args.num_workers != 1:
+            raise ValueError("Frame streaming requires --num-workers 1")
+
+        from olmo.eval.frame_streamer import FrameStreamer
+        from olmo.eval.streaming_policy_wrapper import StreamingPolicyWrapper
+
+        # Build the policy ourselves so we can wrap it before run_evaluation.
+        config_instance = eval_config_cls()
+        config_instance.policy_config.checkpoint_path = str(Path(checkpoint_path).resolve())
+        inner_policy = config_instance.policy_config.policy_cls(config_instance, config_instance.task_type)
+
+        streamer = FrameStreamer(port=args.stream_port, jpeg_quality=args.stream_quality)
+        streamer.start()
+
+        camera_names = config_instance.policy_config.camera_names
+        preloaded_policy = StreamingPolicyWrapper(inner_policy, streamer, camera_names)
+        print(f"Frame viewer: open http://0.0.0.0:{args.stream_port}/ in your browser")
+
+    try:
+        results = run_evaluation(
+            eval_config_cls=eval_config_cls,
+            benchmark_dir=resolved_benchmark_path,
+            checkpoint_path=Path(checkpoint_path),
+            task_horizon_steps=args.task_horizon,
+            output_dir=str(output_dir) if output_dir else None,
+            num_workers=args.num_workers,
+            use_wandb=args.use_wandb,
+            wandb_project=args.wandb_project,
+            use_filament=args.use_filament,
+            environment_light_intensity=args.environment_light_intensity,
+            preloaded_policy=preloaded_policy,
+        )
+    finally:
+        if streamer is not None:
+            streamer.stop()
 
     print(f"Success rate: {results.success_rate:.1%}")
     print(f"Executed episodes: {results.total_count}")
@@ -228,6 +256,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Default environmental light intensity for filament",
     )
     smoke.add_argument("--notes", type=str, default=None, help="Free-form notes to store in the manifest")
+    smoke.add_argument(
+        "--stream-port",
+        type=int,
+        default=None,
+        help="Start a WebSocket frame streamer on this port for real-time browser viewing (requires --num-workers 1)",
+    )
+    smoke.add_argument(
+        "--stream-quality",
+        type=int,
+        default=70,
+        help="JPEG quality (1-100) for streamed frames",
+    )
     smoke.set_defaults(func=run_benchmark_smoke)
 
     return parser
