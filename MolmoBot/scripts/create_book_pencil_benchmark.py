@@ -26,16 +26,15 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 import molmo_spaces
-from molmo_spaces.configs.robot_configs import FrankaRobotConfig
-from molmo_spaces.molmo_spaces_constants import ASSETS_DIR, get_robot_path
-from molmo_spaces.robots.franka import FrankaRobot
+from molmo_spaces.molmo_spaces_constants import ASSETS_DIR
 from molmo_spaces.utils.lazy_loading_utils import install_uid
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "benchmarks" / "franka_book_pencil_pick_place"
 HOUSE_BASE_XML = Path(molmo_spaces.__file__).parent / "resources" / "base_scene.xml"
 
-# Use absolute path for scene_dataset — triggers custom path handling in task_sampler.
-# We patch the ceiling variant to also point to our scene file.
+# Furniture XML files (MuJoCo primitives, no mesh dependencies)
+DESK_XML = OUTPUT_DIR / "desk.xml"
+BOOKCASE_XML = OUTPUT_DIR / "bookcase.xml"
 
 THOR_QUAT = R.from_euler("x", 90, degrees=True).as_quat(scalar_first=True)
 ROBOT_BASE_POSE = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
@@ -71,8 +70,8 @@ CAMERAS = [
     },
 ]
 
-# Actual desk surface top at z ≈ 0.91 when desk pos z = 0.33
-DESK_SURFACE_Z = 0.93
+# Desk top at z = 0.735 (desk body at [0.75,0.45,0], top geom at z=0.72, half-size=0.015)
+DESK_SURFACE_Z = 0.75
 
 
 def build_custom_scene_xml() -> None:
@@ -95,50 +94,46 @@ def build_custom_scene_xml() -> None:
         conaffinity=15,
     )
 
-    # --- Layout (top-down view, robot at origin facing +X) ---
-    # Robot base pedestal is 0.5x0.5m, arm reaches ~0.85m.
-    # Desk to the right (+X, +Y), bookcase to the right (+X, -Y).
-    # Both open-side facing the robot so it can reach objects and shelves.
+    # Bake furniture into scene XML (not added_objects, which requires ObjectMeta).
+    # Desk
+    desk_body = spec.worldbody.add_body(name="desk", pos=[0.75, 0.45, 0.0])
+    desk_body.add_geom(name="desk_top", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.5, 0.25, 0.015], pos=[0, 0, 0.72], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
+    for lx, ly, ln in [(-0.45, -0.2, "fl"), (0.45, -0.2, "fr"), (-0.45, 0.2, "bl"), (0.45, 0.2, "br")]:
+        desk_body.add_geom(name=f"desk_leg_{ln}", type=mujoco.mjtGeom.mjGEOM_BOX,
+            size=[0.02, 0.02, 0.36], pos=[lx, ly, 0.36], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
 
-    # Desk (static) — to the left of robot (+Y side)
-    desk_xml = install_uid("RoboTHOR_desk_lisabo")
-    desk_spec = mujoco.MjSpec.from_file(str(desk_xml))
-    desk_body = desk_spec.worldbody.bodies[0]
-    for j in desk_body.joints:
-        if j.type == mujoco.mjtJoint.mjJNT_FREE:
-            j.damping = 1e10
-    desk_frame = spec.worldbody.add_frame(pos=[0.8, 0.55, 0.33], quat=THOR_QUAT)
-    desk_frame.attach_body(desk_body, "desk/", "")
-
-    # Bookcase (static) — to the right (-Y side), open shelves facing robot
-    shelf_xml = install_uid("Shelving_Unit_206_1")
-    shelf_spec = mujoco.MjSpec.from_file(str(shelf_xml))
-    shelf_body = shelf_spec.worldbody.bodies[0]
-    for j in shelf_body.joints:
-        if j.type == mujoco.mjtJoint.mjJNT_FREE:
-            j.damping = 1e10
-    shelf_quat = (R.from_euler("z", 180, degrees=True) * R.from_euler("x", 90, degrees=True)).as_quat(scalar_first=True)
-    shelf_frame = spec.worldbody.add_frame(pos=[0.55, -0.5, 1.05], quat=shelf_quat)
-    shelf_frame.attach_body(shelf_body, "bookcase/", "")
-
-    # Robot at origin, facing +X toward furniture
-    robot_config = FrankaRobotConfig(base_size=[0.5, 0.5, 0.75])
-    robot_path = get_robot_path(robot_config.name) / robot_config.robot_xml_path
-    robot_spec = mujoco.MjSpec.from_file(str(robot_path))
-    FrankaRobot.add_robot_to_scene(
-        robot_config, spec, robot_spec,
-        prefix=robot_config.robot_namespace,
-        pos=[0, 0], quat=[1, 0, 0, 0],
-    )
+    # Bookcase
+    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.55, -0.5, 0.0])
+    bc_c = [0.7, 0.6, 0.4, 1.0]
+    bc_body.add_geom(name="bc_back", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.3, 0.01, 0.8], pos=[0, -0.14, 0.8], rgba=bc_c, contype=8, conaffinity=15)
+    bc_body.add_geom(name="bc_left", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.01, 0.15, 0.8], pos=[-0.29, 0, 0.8], rgba=bc_c, contype=8, conaffinity=15)
+    bc_body.add_geom(name="bc_right", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.01, 0.15, 0.8], pos=[0.29, 0, 0.8], rgba=bc_c, contype=8, conaffinity=15)
+    bc_body.add_geom(name="bc_bottom", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.29, 0.15, 0.01], pos=[0, 0, 0.01], rgba=bc_c, contype=8, conaffinity=15)
+    for si, sz in enumerate([0.4, 0.8, 1.2]):
+        bc_body.add_geom(name=f"bc_shelf_{si}", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.29, 0.15, 0.01], pos=[0, 0, sz], rgba=bc_c, contype=8, conaffinity=15)
+    bc_body.add_geom(name="bc_top", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.3, 0.15, 0.01], pos=[0, 0, 1.6], rgba=bc_c, contype=8, conaffinity=15)
 
     model = spec.compile()
     print(f"  Scene compiled: {model.nbody} bodies, {model.ngeom} geoms")
 
+    # Scene must be under ASSETS_DIR/scenes/ for eval pipeline path validation
+    custom_dir = ASSETS_DIR / "scenes" / "custom-benchmark"
+    custom_dir.mkdir(parents=True, exist_ok=True)
+    scene_path = custom_dir / "scene.xml"
     xml_string = spec.to_xml()
-
-    scene_path = OUTPUT_DIR / "custom_scene.xml"
     with open(scene_path, "w") as f:
         f.write(xml_string)
+
+    # Reference copy in benchmark dir
+    ref_path = OUTPUT_DIR / "custom_scene.xml"
+    with open(ref_path, "w") as f:
+        f.write(xml_string)
+
+    # Create scene metadata (required by eval pipeline)
+    metadata_path = scene_path.with_name("scene_metadata.json")
+    with open(metadata_path, "w") as f:
+        json.dump({"objects": {}}, f)
 
     print(f"  Saved scene to {scene_path}")
     return scene_path
@@ -157,9 +152,9 @@ def make_pose(x, y, z, quat=None):
 def create_box_to_bookcase_episode(scene_xml: str) -> dict:
     """Pick Tissue_Box_1 from desk → place in bookcase shelf."""
     uid = "Tissue_Box_1"
-    obj_pose = make_pose(0.7, 0.5, DESK_SURFACE_Z + 0.1)
-    obj_goal = make_pose(0.7, 0.5, DESK_SURFACE_Z + 0.15)
-    shelf_pose = make_pose(0.55, -0.5, 1.2)
+    obj_pose = make_pose(0.65, 0.45, DESK_SURFACE_Z + 0.04)
+    obj_goal = make_pose(0.65, 0.45, DESK_SURFACE_Z + 0.09)
+    shelf_pose = [0.55, -0.5, 0.5, 1.0, 0.0, 0.0, 0.0]
 
     return {
         "source": None,
@@ -171,8 +166,12 @@ def create_box_to_bookcase_episode(scene_xml: str) -> dict:
         "img_resolution": IMG_RESOLUTION,
         "cameras": CAMERAS,
         "scene_modifications": {
-            "added_objects": {f"pickup_object/{uid}": asset_rel_path(uid)},
-            "object_poses": {f"pickup_object/{uid}": obj_pose},
+            "added_objects": {
+                f"pickup_object/{uid}": asset_rel_path(uid),
+            },
+            "object_poses": {
+                f"pickup_object/{uid}": obj_pose,
+            },
             "removed_objects": [],
         },
         "task": {
@@ -183,13 +182,13 @@ def create_box_to_bookcase_episode(scene_xml: str) -> dict:
             "pickup_obj_start_pose": obj_pose,
             "pickup_obj_goal_pose": obj_goal,
             "succ_pos_threshold": 0.03,
-            "place_receptacle_name": "bookcase/Shelving_Unit_206_1",
+            "place_receptacle_name": "bookcase",
             "place_receptacle_start_pose": shelf_pose,
             "receptacle_supported_weight_frac": 0.5,
             "max_place_receptacle_pos_displacement": 0.15,
             "max_place_receptacle_rot_displacement": float(np.deg2rad(60)),
         },
-        "task_relevant_objects": [f"pickup_object/{uid}", "bookcase/Shelving_Unit_206_1"],
+        "task_relevant_objects": [f"pickup_object/{uid}", "bookcase"],
         "language": {
             "task_description": "Pick up the tissue box from the desk and place it in the bookcase",
             "referral_expressions": {"pickup_name": "tissue box", "place_name": "bookcase"},
@@ -202,9 +201,9 @@ def create_pencil_to_cup_episode(scene_xml: str) -> dict:
     pencil_uid = "Pencil_1"
     cup_uid = "Cup_5"
 
-    pencil_pose = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.05)
-    pencil_goal = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.10)
-    cup_pose = make_pose(0.6, 0.6, DESK_SURFACE_Z + 0.08)
+    pencil_pose = make_pose(0.8, 0.35, DESK_SURFACE_Z + 0.02)
+    pencil_goal = make_pose(0.8, 0.35, DESK_SURFACE_Z + 0.07)
+    cup_pose = make_pose(0.85, 0.55, DESK_SURFACE_Z + 0.08)
 
     return {
         "source": None,

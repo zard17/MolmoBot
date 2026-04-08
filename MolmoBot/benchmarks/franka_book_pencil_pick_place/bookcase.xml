@@ -1,0 +1,14 @@
+<mujoco>
+  <worldbody>
+    <body name="bookcase">
+      <geom name="bc_back" type="box" size="0.3 0.01 0.8" pos="0 -0.14 0.8" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+      <geom name="bc_left" type="box" size="0.01 0.15 0.8" pos="-0.29 0 0.8" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+      <geom name="bc_right" type="box" size="0.01 0.15 0.8" pos="0.29 0 0.8" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+      <geom name="bc_bottom" type="box" size="0.29 0.15 0.01" pos="0 0 0.01" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+      <geom name="bc_shelf_0" type="box" size="0.29 0.15 0.01" pos="0 0 0.4" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+      <geom name="bc_shelf_1" type="box" size="0.29 0.15 0.01" pos="0 0 0.8" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+      <geom name="bc_shelf_2" type="box" size="0.29 0.15 0.01" pos="0 0 1.2" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+      <geom name="bc_top" type="box" size="0.3 0.15 0.01" pos="0 0 1.6" rgba="0.7 0.6 0.4 1" contype="8" conaffinity="15"/>
+    </body>
+  </worldbody>
+</mujoco>

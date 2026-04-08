@@ -320,15 +320,15 @@ class FrankaCustomSceneEvalConfig(FrankaState8ClampAbsPosConfig):
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)
-        # Monkey-patch JsonEvalTaskSampler._get_dataset_index_map to fill in
-        # the ceiling variant for absolute-path scene datasets.
         import os
-        from molmo_spaces.tasks.json_eval_task_sampler import JsonEvalTaskSampler
+        from molmo_spaces.tasks.task_sampler import BaseMujocoTaskSampler
+        import molmo_spaces.utils.lazy_loading_utils as llu
 
-        _orig = JsonEvalTaskSampler._get_dataset_index_map
+        # Patch 1: Fill in ceiling variant for absolute-path scene datasets
+        _orig_map = BaseMujocoTaskSampler._get_dataset_index_map
 
-        def _patched(self_ts):
-            result = _orig(self_ts)
+        def _patched_map(self_ts):
+            result = _orig_map(self_ts)
             if result is None:
                 return result
             for split_map in result.values():
@@ -340,7 +340,36 @@ class FrankaCustomSceneEvalConfig(FrankaState8ClampAbsPosConfig):
                                 variants["ceiling"] = base
             return result
 
-        JsonEvalTaskSampler._get_dataset_index_map = _patched
+        BaseMujocoTaskSampler._get_dataset_index_map = _patched_map
+
+        # Patch 2: Skip archive install for custom scenes already on disk.
+        # Must patch at module level AND in task_sampler's namespace.
+        from molmo_spaces.tasks import task_sampler as ts_mod
+
+        _orig_install_scene = llu.install_scene_from_path
+
+        def _patched_install_scene(xml_path):
+            if os.path.isfile(xml_path):
+                try:
+                    return _orig_install_scene(xml_path)
+                except (ValueError, RuntimeError):
+                    return {}
+            return _orig_install_scene(xml_path)
+
+        _orig_install_all = llu.install_scene_with_objects_and_grasps_from_path
+
+        def _patched_install_all(xml_path, **kwargs):
+            if os.path.isfile(xml_path):
+                try:
+                    return _orig_install_all(xml_path, **kwargs)
+                except (ValueError, RuntimeError):
+                    return {}
+            return _orig_install_all(xml_path, **kwargs)
+
+        # Patch in all namespaces
+        llu.install_scene_from_path = _patched_install_scene
+        llu.install_scene_with_objects_and_grasps_from_path = _patched_install_all
+        ts_mod.install_scene_with_objects_and_grasps_from_path = _patched_install_all
 
 
 class FrankaAbsPosRandomCamConfig(JsonBenchmarkEvalConfig):

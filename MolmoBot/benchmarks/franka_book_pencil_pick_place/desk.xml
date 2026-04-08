@@ -1,0 +1,11 @@
+<mujoco>
+  <worldbody>
+    <body name="desk">
+      <geom name="desk_top" type="box" size="0.5 0.25 0.015" pos="0 0 0.72" rgba="0.55 0.35 0.2 1" contype="8" conaffinity="15"/>
+      <geom name="desk_leg_fl" type="box" size="0.02 0.02 0.36" pos="-0.45 -0.2 0.36" rgba="0.55 0.35 0.2 1" contype="8" conaffinity="15"/>
+      <geom name="desk_leg_fr" type="box" size="0.02 0.02 0.36" pos="0.45 -0.2 0.36" rgba="0.55 0.35 0.2 1" contype="8" conaffinity="15"/>
+      <geom name="desk_leg_bl" type="box" size="0.02 0.02 0.36" pos="-0.45 0.2 0.36" rgba="0.55 0.35 0.2 1" contype="8" conaffinity="15"/>
+      <geom name="desk_leg_br" type="box" size="0.02 0.02 0.36" pos="0.45 0.2 0.36" rgba="0.55 0.35 0.2 1" contype="8" conaffinity="15"/>
+    </body>
+  </worldbody>
+</mujoco>
