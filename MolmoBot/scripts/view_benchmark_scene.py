@@ -9,8 +9,6 @@ Usage:
     python scripts/view_benchmark_scene.py
 """
 
-import time
-
 import mujoco
 import mujoco.viewer
 import numpy as np
@@ -86,23 +84,17 @@ def main():
     print("Building scene...")
     model, data = build_scene()
 
-    print("Launching viewer (camera pointed at robot workspace)...")
-    viewer = mujoco.viewer.launch_passive(model, data)
-
-    # Point camera behind the robot, looking over its shoulder toward the workspace
+    # Set default viewer camera via model keyframe
+    # Camera behind the robot, looking over its shoulder toward the workspace
     # Robot is at [6.8, 9.75] facing +Y (yaw=90), so "behind" is -Y direction
-    viewer.cam.lookat[:] = [6.8, 10.0, 0.9]  # slightly ahead of robot
-    viewer.cam.distance = 1.5
-    viewer.cam.elevation = -15
-    viewer.cam.azimuth = 90  # looking in +Y direction (same as robot)
+    model.cam_pos0[0] = [6.8, 9.0, 1.2]  # behind and slightly above robot
 
+    print("Launching viewer...")
     print("Controls: left-drag=rotate, right-drag=pan, scroll=zoom")
     print("Close the viewer window to exit.")
+    print("Tip: on macOS use 'mjpython' instead of 'python' if launch_passive is needed.")
 
-    while viewer.is_running():
-        mujoco.mj_step(model, data)
-        viewer.sync()
-        time.sleep(0.01)
+    mujoco.viewer.launch(model, data)
 
 
 if __name__ == "__main__":
