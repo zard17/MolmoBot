@@ -161,8 +161,8 @@ def build_scene():
     # Pencil on the desk
     attach_dynamic(spec, "Pencil_1", pos=[0.8, 0.35, desk_top_z + 0.02], prefix="pickup_pencil/")
 
-    # Plate on the desk (receptacle for pencil — clean geometry, no internal collision boxes)
-    attach_dynamic(spec, "Plate_1", pos=[0.85, 0.55, desk_top_z + 0.03], prefix="place_receptacle/")
+    # Cup on the desk (receptacle for pencil)
+    attach_dynamic(spec, "Cup_5", pos=[0.85, 0.55, desk_top_z + 0.08], prefix="place_receptacle/")
 
     # Compile
     model = spec.compile()

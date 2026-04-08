@@ -200,11 +200,11 @@ def create_box_to_bookcase_episode(scene_xml: str) -> dict:
 def create_pencil_to_cup_episode(scene_xml: str) -> dict:
     """Pick Pencil_1 from desk → place in Cup_5 on desk."""
     pencil_uid = "Pencil_1"
-    cup_uid = "Plate_1"
+    cup_uid = "Cup_5"
 
     pencil_pose = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.05)
     pencil_goal = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.10)
-    cup_pose = make_pose(0.6, 0.6, DESK_SURFACE_Z + 0.03)
+    cup_pose = make_pose(0.6, 0.6, DESK_SURFACE_Z + 0.08)
 
     return {
         "source": None,
@@ -242,8 +242,8 @@ def create_pencil_to_cup_episode(scene_xml: str) -> dict:
         },
         "task_relevant_objects": [f"pickup_object/{pencil_uid}", f"place_receptacle/{cup_uid}"],
         "language": {
-            "task_description": "Pick up the pencil and place it on the plate",
-            "referral_expressions": {"pickup_name": "pencil", "place_name": "plate"},
+            "task_description": "Pick up the pencil and put it in the cup",
+            "referral_expressions": {"pickup_name": "pencil", "place_name": "cup"},
         },
     }
 
