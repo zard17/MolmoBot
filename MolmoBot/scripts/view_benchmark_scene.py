@@ -89,11 +89,12 @@ def main():
     print("Launching viewer (camera pointed at robot workspace)...")
     viewer = mujoco.viewer.launch_passive(model, data)
 
-    # Point camera at the robot workspace
-    viewer.cam.lookat[:] = [6.8, 9.75, 0.9]
-    viewer.cam.distance = 3.0
-    viewer.cam.elevation = -25
-    viewer.cam.azimuth = 180
+    # Point camera behind the robot, looking over its shoulder toward the workspace
+    # Robot is at [6.8, 9.75] facing +Y (yaw=90), so "behind" is -Y direction
+    viewer.cam.lookat[:] = [6.8, 10.0, 0.9]  # slightly ahead of robot
+    viewer.cam.distance = 1.5
+    viewer.cam.elevation = -15
+    viewer.cam.azimuth = 90  # looking in +Y direction (same as robot)
 
     print("Controls: left-drag=rotate, right-drag=pan, scroll=zoom")
     print("Close the viewer window to exit.")
