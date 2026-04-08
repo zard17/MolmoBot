@@ -99,17 +99,17 @@ def build_scene():
     )
 
     # --- Manipulable objects (dynamic) ---
-    # Desk surface at z ≈ 0.69 (0.33 base + 0.355 top extent + margin)
-    desk_surface_z = 0.69
+    # Actual desk surface top is at z ≈ 0.91 (measured from geom pos + size)
+    desk_top_z = 0.93  # 0.91 + small margin
 
-    # Tissue box on the desk — place well above surface so it drops and settles
-    attach_dynamic(spec, "Tissue_Box_1", pos=[0.7, 0.5, desk_surface_z + 0.1], prefix="pickup_object/")
+    # Tissue box on the desk
+    attach_dynamic(spec, "Tissue_Box_1", pos=[0.7, 0.5, desk_top_z + 0.04], prefix="pickup_object/")
 
     # Pencil on the desk
-    attach_dynamic(spec, "Pencil_1", pos=[0.7, 0.35, desk_surface_z + 0.05], prefix="pickup_pencil/")
+    attach_dynamic(spec, "Pencil_1", pos=[0.7, 0.35, desk_top_z + 0.02], prefix="pickup_pencil/")
 
     # Cup on the desk
-    attach_dynamic(spec, "Cup_5", pos=[0.6, 0.6, desk_surface_z + 0.12], prefix="place_receptacle/")
+    attach_dynamic(spec, "Cup_5", pos=[0.6, 0.6, desk_top_z + 0.08], prefix="place_receptacle/")
 
     # Compile
     model = spec.compile()

@@ -71,7 +71,8 @@ CAMERAS = [
     },
 ]
 
-DESK_SURFACE_Z = 0.69
+# Actual desk surface top at z ≈ 0.91 when desk pos z = 0.33
+DESK_SURFACE_Z = 0.93
 
 
 def build_custom_scene_xml() -> None:
