@@ -126,14 +126,26 @@ class SynthManipMolmoInferenceWrapper:
 
         # Build model
         log.info(f"Building model...")
+        # with torch.device("meta"):
+        #     self.model = self.model_config.build_model()
+        # if self.use_bfloat16:
+        #     self.model.to(torch.bfloat16)
+
+        # self.model.to_empty(device=self.device)
+        # load_model_state(self.checkpoint_path, self.model)
+        # self.model.to(self.device)
+        # 최적화된 코드
         with torch.device("meta"):
             self.model = self.model_config.build_model()
+
+        # Low CPU memory usage로 가중치 로드
+        load_model_state(self.checkpoint_path, self.model)
+
+        # bfloat16 변환 후 GPU로 이동
         if self.use_bfloat16:
             self.model.to(torch.bfloat16)
-
-        self.model.to_empty(device=self.device)
-        load_model_state(self.checkpoint_path, self.model)
         self.model.to(self.device)
+
         self.model.eval()
         log.info("Model loaded successfully")
 
@@ -318,20 +330,26 @@ class SynthManipMolmoInferenceWrapper:
         model_inputs = {k: v for k, v in model_inputs.items() if v is not None}
 
         # Generate actions
-        with torch.no_grad():
-            if self.use_bfloat16:
-                with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-                    actions = self.model.generate_actions(
-                        **model_inputs,
-                        num_steps=self.num_flow_steps,
-                        generator=generator,
-                    )
-            else:
-                actions = self.model.generate_actions(
-                    **model_inputs,
-                    num_steps=self.num_flow_steps,
-                    generator=generator,
-                )
+        # with torch.no_grad():
+        #     if self.use_bfloat16:
+        #         with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+        #             actions = self.model.generate_actions(
+        #                 **model_inputs,
+        #                 num_steps=self.num_flow_steps,
+        #                 generator=generator,
+        #             )
+        #     else:
+        #         actions = self.model.generate_actions(
+        #             **model_inputs,
+        #             num_steps=self.num_flow_steps,
+        #             generator=generator,
+        #         )
+        with torch.no_grad(), torch.cuda.amp.autocast(dtype=torch.bfloat16):
+            actions = self.model.generate_actions(
+                **model_inputs,
+                num_steps=self.num_flow_steps,
+                generator=generator,
+            )
         
         # Convert to numpy and unnormalize
         actions_np = actions.detach().cpu().numpy()
