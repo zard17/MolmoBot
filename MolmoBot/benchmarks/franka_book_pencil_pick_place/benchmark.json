@@ -2,7 +2,7 @@
   {
     "source": null,
     "house_index": 0,
-    "scene_dataset": "procthor-10k",
+    "scene_dataset": "/Users/youngsus/simul/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/custom_scene.xml",
     "data_split": "val",
     "seed": null,
     "robot": {
@@ -82,23 +82,13 @@
     ],
     "scene_modifications": {
       "added_objects": {
-        "pickup_object/Mug_1": "objects/thor/Kitchen Objects/Mug/Prefabs/Mug_1/Mug_1.xml",
-        "place_receptacle/Shelving_Unit_206_1": "objects/thor/Common Objects/ShelvingUnit/Prefabs/Shelving_Unit_206_1/Shelving_Unit_206_1.xml"
+        "pickup_object/Tissue_Box_1": "objects/thor/Miscellaneous Objects/TissueBox/Prefabs/Tissue_Box_1/Tissue_Box_1.xml"
       },
       "object_poses": {
-        "pickup_object/Mug_1": [
-          6.5,
-          10.1,
-          0.5310090280923844,
-          0.7071067811865476,
-          0.7071067811865475,
-          0.0,
-          0.0
-        ],
-        "place_receptacle/Shelving_Unit_206_1": [
-          7.3,
-          10.2,
-          1.1013011932373047,
+        "pickup_object/Tissue_Box_1": [
+          0.5,
+          0.1,
+          0.84,
           0.7071067811865476,
           0.7071067811865475,
           0.0,
@@ -111,39 +101,39 @@
       "task_cls": "molmo_spaces.tasks.pick_and_place_task.PickAndPlaceTask",
       "task_type": "pick_and_place",
       "robot_base_pose": [
-        6.8,
-        9.75,
-        0.0,
-        0.7071067811865476,
         0.0,
         0.0,
-        0.7071067811865475
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
       ],
-      "pickup_obj_name": "pickup_object/Mug_1",
+      "pickup_obj_name": "pickup_object/Tissue_Box_1",
       "pickup_obj_start_pose": [
-        6.5,
-        10.1,
-        0.5310090280923844,
+        0.5,
+        0.1,
+        0.84,
         0.7071067811865476,
         0.7071067811865475,
         0.0,
         0.0
       ],
       "pickup_obj_goal_pose": [
-        6.5,
-        10.1,
-        0.5810090280923844,
+        0.5,
+        0.1,
+        0.89,
         0.7071067811865476,
         0.7071067811865475,
         0.0,
         0.0
       ],
       "succ_pos_threshold": 0.03,
-      "place_receptacle_name": "place_receptacle/Shelving_Unit_206_1",
+      "place_receptacle_name": "bookcase/Shelving_Unit_206_1",
       "place_receptacle_start_pose": [
-        7.3,
-        10.2,
-        1.1013011932373047,
+        0.65,
+        -0.65,
+        0.9,
         0.7071067811865476,
         0.7071067811865475,
         0.0,
@@ -154,21 +144,21 @@
       "max_place_receptacle_rot_displacement": 1.0471975511965976
     },
     "task_relevant_objects": [
-      "pickup_object/Mug_1",
-      "place_receptacle/Shelving_Unit_206_1"
+      "pickup_object/Tissue_Box_1",
+      "bookcase/Shelving_Unit_206_1"
     ],
     "language": {
-      "task_description": "Pick up the mug and place it on the shelf",
+      "task_description": "Pick up the tissue box from the desk and place it in the bookcase",
       "referral_expressions": {
-        "pickup_name": "mug",
-        "place_name": "shelf"
+        "pickup_name": "tissue box",
+        "place_name": "bookcase"
       }
     }
   },
   {
     "source": null,
     "house_index": 0,
-    "scene_dataset": "procthor-10k",
+    "scene_dataset": "/Users/youngsus/simul/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/custom_scene.xml",
     "data_split": "val",
     "seed": null,
     "robot": {
@@ -253,18 +243,18 @@
       },
       "object_poses": {
         "pickup_object/Pencil_1": [
-          6.6,
-          10.15,
-          0.4839188073616326,
+          0.5,
+          -0.1,
+          0.78,
           0.7071067811865476,
           0.7071067811865475,
           0.0,
           0.0
         ],
         "place_receptacle/Cup_5": [
-          6.9,
-          10.1,
-          0.5511699117574692,
+          0.4,
+          -0.2,
+          0.84,
           0.7071067811865476,
           0.7071067811865475,
           0.0,
@@ -277,28 +267,28 @@
       "task_cls": "molmo_spaces.tasks.pick_and_place_task.PickAndPlaceTask",
       "task_type": "pick_and_place",
       "robot_base_pose": [
-        6.8,
-        9.75,
-        0.0,
-        0.7071067811865476,
         0.0,
         0.0,
-        0.7071067811865475
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
       ],
       "pickup_obj_name": "pickup_object/Pencil_1",
       "pickup_obj_start_pose": [
-        6.6,
-        10.15,
-        0.4839188073616326,
+        0.5,
+        -0.1,
+        0.78,
         0.7071067811865476,
         0.7071067811865475,
         0.0,
         0.0
       ],
       "pickup_obj_goal_pose": [
-        6.6,
-        10.15,
-        0.5339188073616327,
+        0.5,
+        -0.1,
+        0.8300000000000001,
         0.7071067811865476,
         0.7071067811865475,
         0.0,
@@ -307,9 +297,9 @@
       "succ_pos_threshold": 0.03,
       "place_receptacle_name": "place_receptacle/Cup_5",
       "place_receptacle_start_pose": [
-        6.9,
-        10.1,
-        0.5511699117574692,
+        0.4,
+        -0.2,
+        0.84,
         0.7071067811865476,
         0.7071067811865475,
         0.0,

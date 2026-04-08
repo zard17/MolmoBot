@@ -1,0 +1,447 @@
+<mujoco model="mlspaces-house">
+  <compiler angle="radian"/>
+
+  <option impratio="10" gravity="0 0 -9.8" integrator="implicitfast" cone="elliptic" jacobian="sparse" noslip_iterations="4">
+    <flag energy="enable" multiccd="enable"/>
+  </option>
+
+  <visual>
+    <global offwidth="1280" offheight="720"/>
+    <quality shadowsize="16384"/>
+    <headlight ambient="0.35 0.35 0.35"/>
+    <map znear="0.001"/>
+  </visual>
+
+  <default>
+    <default class="/">
+      <default class="__VISUAL_MJT__">
+        <geom contype="0" conaffinity="0"/>
+      </default>
+      <default class="__STRUCTURAL_MJT__">
+        <geom contype="8" conaffinity="15" group="4" friction="0.9 0.9 0.001" solref="0.025" solimp="0.998 0.998" density="500"/>
+        <default class="__STRUCTURAL_WALL_MJT__">
+          <geom group="3"/>
+        </default>
+      </default>
+      <default class="__DYNAMIC_MJT__">
+        <geom conaffinity="15" group="4" friction="0.9 0.9 0.001" solref="0.025" solimp="0.998 0.998" density="500"/>
+      </default>
+      <default class="__ARTICULABLE_DYNAMIC_MJT__">
+        <geom contype="0" conaffinity="7" group="4" friction="0.9 0.9 0.001" solref="0.025" solimp="0.998 0.998" density="500"/>
+      </default>
+    </default>
+    <default class="desk/main">
+      <default class="desk//">
+        <default class="desk/__VISUAL_MJT__">
+          <geom contype="0" conaffinity="0"/>
+        </default>
+        <default class="desk/__STRUCTURAL_MJT__">
+          <geom contype="8" conaffinity="15" group="4" friction="0.9 0.9 0.001" solref="0.025" solimp="0.998 0.998"/>
+        </default>
+        <default class="desk/__DYNAMIC_MJT__">
+          <geom conaffinity="15" group="4" friction="0.9 0.9 0.001" solref="0.025" solimp="0.998 0.998"/>
+        </default>
+      </default>
+    </default>
+    <default class="bookcase/main">
+      <default class="bookcase//">
+        <default class="bookcase/__VISUAL_MJT__">
+          <geom contype="0" conaffinity="0"/>
+        </default>
+        <default class="bookcase/__STRUCTURAL_MJT__">
+          <geom contype="8" conaffinity="15" group="4" friction="0.9 0.9 0.001" solref="0.025" solimp="0.998 0.998"/>
+        </default>
+        <default class="bookcase/__DYNAMIC_MJT__">
+          <geom conaffinity="15" group="4" friction="0.9 0.9 0.001" solref="0.025" solimp="0.998 0.998"/>
+        </default>
+      </default>
+    </default>
+    <default class="robot_0/main">
+      <default class="robot_0/fr3">
+        <joint armature="0.1" damping="1"/>
+        <site size="0.001 0.005 0.005" group="4" rgba="0.5 0.5 0.5 0.3"/>
+        <general biastype="affine" biasprm="0 -1"/>
+        <default class="robot_0/visual">
+          <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+        </default>
+        <default class="robot_0/collision">
+          <geom type="mesh" group="3"/>
+        </default>
+      </default>
+      <default class="robot_0/panda">
+        <material shininess="0.25"/>
+        <joint range="-2.8973 2.8973" armature="0.1" damping="1"/>
+        <general ctrlrange="-2.8973 2.8973" forcerange="-87 87" biastype="affine"/>
+      </default>
+      <default class="robot_0/gripper/main">
+        <default class="robot_0/gripper/2f85">
+          <mesh scale="0.001 0.001 0.001"/>
+          <general biastype="affine"/>
+          <default class="robot_0/gripper/driver">
+            <joint solreflimit="0.005" solimplimit="0.95 0.99" range="0 0.9" armature="0.005" damping="0.1"/>
+          </default>
+          <default class="robot_0/gripper/follower">
+            <joint solreflimit="0.005" solimplimit="0.95 0.99" range="-0.872664 0.9" armature="0.001"/>
+          </default>
+          <default class="robot_0/gripper/spring_link">
+            <joint springref="2.62" stiffness="0.05" range="-0.296706 0.9" armature="0.001" damping="0.00125"/>
+          </default>
+          <default class="robot_0/gripper/coupler">
+            <joint solreflimit="0.005" solimplimit="0.95 0.99" range="-1.57 0" armature="0.001"/>
+          </default>
+          <default class="robot_0/gripper/visual">
+            <geom type="mesh" contype="0" conaffinity="0" group="2" material="black"/>
+          </default>
+          <default class="robot_0/gripper/collision">
+            <geom type="mesh" group="3"/>
+            <default class="robot_0/gripper/pad_box1">
+              <geom size="0.002 0.011 0.009375" type="box" priority="1" friction="0.7" solref="0.004" solimp="0.95 0.99" rgba="0.55 0.55 0.55 1"/>
+            </default>
+            <default class="robot_0/gripper/pad_box2">
+              <geom size="0.002 0.011 0.009375" type="box" priority="1" friction="0.6" solref="0.004" solimp="0.95 0.99" rgba="0.45 0.45 0.45 1"/>
+            </default>
+          </default>
+        </default>
+      </default>
+    </default>
+  </default>
+
+  <asset>
+    <texture type="2d" colorspace="linear" name="desk/RoboTHOR_Desk_Lisabo_Wood_Mat" file="WoodGrains1.png"/>
+    <texture type="2d" colorspace="linear" name="bookcase/TexturesCom_WoodFine0050_1_seamless_S_white" file="TexturesCom_WoodWhite.png"/>
+    <texture type="2d" colorspace="linear" name="bookcase/HammeredMetal_Dark" file="HammeredMetal_AlbedoTransparency.png"/>
+    <texture type="cube" colorspace="linear" name="robot_0/robot_base_texture" file="/Users/youngsus/simul/MolmoBot/MolmoBot/.venv/lib/python3.11/site-packages/assets/robots/franka_droid/assets/base_textures/DarkWood2.png"/>
+    <material name="desk/material_RoboTHOR_Desk_Lisabo_Wood_Mat" class="desk//" texture="desk/RoboTHOR_Desk_Lisabo_Wood_Mat" rgba="0.832 0.722176 0.65728 1"/>
+    <material name="bookcase/material_MetalMat4" class="bookcase//" rgba="0.56074 0.494513 0.266638 1"/>
+    <material name="bookcase/material_TexturesCom_WoodFine0050_1_seamless_S_white" class="bookcase//" texture="bookcase/TexturesCom_WoodFine0050_1_seamless_S_white" rgba="0.933824 0.859761 0.617971 1"/>
+    <material name="bookcase/material_WhiteWoodClean" class="bookcase//"/>
+    <material name="bookcase/material_HammeredMetal_Dark" class="bookcase//" texture="bookcase/HammeredMetal_Dark" rgba="0.264706 0.264706 0.264706 1"/>
+    <material name="robot_0/robot_base_material" texture="robot_0/robot_base_texture"/>
+    <material name="robot_0/black" rgba="0.2 0.2 0.2 1"/>
+    <material name="robot_0/white"/>
+    <material name="robot_0/red" rgba="1 0.072272 0.039546 1"/>
+    <material name="robot_0/gray" rgba="0.863156 0.863156 0.863157 1"/>
+    <material name="robot_0/button_green" rgba="0.102241 0.571125 0.102242 1"/>
+    <material name="robot_0/button_red" rgba="0.520996 0.008023 0.013702 1"/>
+    <material name="robot_0/button_blue" rgba="0.024157 0.445201 0.737911 1"/>
+    <material name="robot_0/gripper/metal" rgba="0.58 0.58 0.58 1"/>
+    <material name="robot_0/gripper/silicone" rgba="0.1882 0.1882 0.1882 1"/>
+    <material name="robot_0/gripper/black" rgba="0.149 0.149 0.149 1"/>
+    <mesh name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo" class="desk//" file="RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo.obj"/>
+    <mesh name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo" class="desk//" file="RoboTHOR_desk_lisabo_robothor_desk_lisabo/RoboTHOR_desk_lisabo_robothor_desk_lisabo.obj"/>
+    <mesh name="bookcase/Shelving_Unit_206_1_mesh_0" class="bookcase//" content_type="model/obj" file="Shelving_Unit_206_1_mesh/Shelving_Unit_206_1_mesh_0.obj"/>
+    <mesh name="bookcase/Shelving_Unit_206_1_mesh_1" class="bookcase//" content_type="model/obj" file="Shelving_Unit_206_1_mesh/Shelving_Unit_206_1_mesh_1.obj"/>
+    <mesh name="bookcase/Shelving_Unit_206_1_Mesh_00" class="bookcase//" content_type="model/obj" file="Shelving_Unit_206_1_Mesh_00/Shelving_Unit_206_1_Mesh_00.obj"/>
+    <mesh name="bookcase/Shelving_Unit_206_1_handle_1_600mm_00" class="bookcase//" content_type="model/obj" file="Shelving_Unit_206_1_handle_1_600mm_00/Shelving_Unit_206_1_handle_1_600mm_00.obj"/>
+    <mesh name="bookcase/Shelving_Unit_206_1_Mesh_01" class="bookcase//" content_type="model/obj" file="Shelving_Unit_206_1_Mesh_01/Shelving_Unit_206_1_Mesh_01.obj"/>
+    <mesh name="bookcase/Shelving_Unit_206_1_handle_1_600mm_01" class="bookcase//" content_type="model/obj" file="Shelving_Unit_206_1_handle_1_600mm_01/Shelving_Unit_206_1_handle_1_600mm_01.obj"/>
+    <mesh name="robot_0/link0_0" file="link0_0.obj"/>
+    <mesh name="robot_0/link0_1" file="link0_1.obj"/>
+    <mesh name="robot_0/link0_2" file="link0_2.obj"/>
+    <mesh name="robot_0/link0_3" file="link0_3.obj"/>
+    <mesh name="robot_0/link0_4" file="link0_4.obj"/>
+    <mesh name="robot_0/link0_5" file="link0_5.obj"/>
+    <mesh name="robot_0/link0_6" file="link0_6.obj"/>
+    <mesh name="robot_0/link1" file="link1.obj"/>
+    <mesh name="robot_0/link2" file="link2.obj"/>
+    <mesh name="robot_0/link3_0" file="link3_0.obj"/>
+    <mesh name="robot_0/link3_1" file="link3_1.obj"/>
+    <mesh name="robot_0/link4_0" file="link4_0.obj"/>
+    <mesh name="robot_0/link4_1" file="link4_1.obj"/>
+    <mesh name="robot_0/link5_0" file="link5_0.obj"/>
+    <mesh name="robot_0/link5_1" file="link5_1.obj"/>
+    <mesh name="robot_0/link5_2" file="link5_2.obj"/>
+    <mesh name="robot_0/link6_0" file="link6_0.obj"/>
+    <mesh name="robot_0/link6_1" file="link6_1.obj"/>
+    <mesh name="robot_0/link6_2" file="link6_2.obj"/>
+    <mesh name="robot_0/link6_3" file="link6_3.obj"/>
+    <mesh name="robot_0/link6_4" file="link6_4.obj"/>
+    <mesh name="robot_0/link6_5" file="link6_5.obj"/>
+    <mesh name="robot_0/link6_6" file="link6_6.obj"/>
+    <mesh name="robot_0/link6_7" file="link6_7.obj"/>
+    <mesh name="robot_0/link7_0" file="link7_0.obj"/>
+    <mesh name="robot_0/link7_1" file="link7_1.obj"/>
+    <mesh name="robot_0/link7_2" file="link7_2.obj"/>
+    <mesh name="robot_0/link7_3" file="link7_3.obj"/>
+    <mesh name="robot_0/link0_coll" file="link0.stl"/>
+    <mesh name="robot_0/link1_coll" file="link1.stl"/>
+    <mesh name="robot_0/link2_coll" file="link2.stl"/>
+    <mesh name="robot_0/link3_coll" file="link3.stl"/>
+    <mesh name="robot_0/link4_coll" file="link4.stl"/>
+    <mesh name="robot_0/link5_coll" file="link5.stl"/>
+    <mesh name="robot_0/link6_coll" file="link6.stl"/>
+    <mesh name="robot_0/link7_coll" file="link7.stl"/>
+    <mesh name="robot_0/gripper/base" file="base.stl"/>
+    <mesh name="robot_0/gripper/base_coupling" file="base_coupling.stl"/>
+    <mesh name="robot_0/gripper/c-a01-85-open" file="c-a01-85-open.stl"/>
+    <mesh name="robot_0/gripper/driver" file="driver.stl"/>
+    <mesh name="robot_0/gripper/coupler" file="coupler.stl"/>
+    <mesh name="robot_0/gripper/spring_link" file="spring_link.stl"/>
+    <mesh name="robot_0/gripper/follower" file="follower.stl"/>
+    <mesh name="robot_0/gripper/tongue" file="tongue.stl"/>
+  </asset>
+
+  <worldbody>
+    <geom name="ground" size="5 5 0.01" type="plane" contype="8" conaffinity="15" rgba="0.3 0.3 0.3 1"/>
+    <body name="desk/RoboTHOR_desk_lisabo" pos="0.7 0.3 0.38" quat="0.707107 0.707107 0 0">
+      <joint name="desk/RoboTHOR_desk_lisabo_free" class="desk//" type="free" damping="0.1"/>
+      <body name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo" pos="0.00695646 0.315616 0.185485">
+        <joint name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo_joint_0" class="desk//" pos="0 0 0" axis="0 0 1" type="slide" range="0 0.269" damping="0.1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo" class="desk/__VISUAL_MJT__" type="mesh" material="desk/material_RoboTHOR_Desk_Lisabo_Wood_Mat" mesh="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo_PrimitiveCollider_0" class="desk/__DYNAMIC_MJT__" size="0.200165 0.00438428 0.160669" pos="0 -0.0471524 -0.180354" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo_PrimitiveCollider_1" class="desk/__DYNAMIC_MJT__" size="0.197664 0.0286549 0.00451908" pos="-0.00176878 -0.0239967 -0.335832" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo_PrimitiveCollider_2" class="desk/__DYNAMIC_MJT__" size="0.216065 0.0374122 0.0103824" pos="-0.0023118 -0.0141342 -0.0102711" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo_PrimitiveCollider_3" class="desk/__DYNAMIC_MJT__" size="0.00573053 0.0278665 0.160834" pos="0.1893 -0.0238208 -0.179295" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo_PrimitiveCollider_4" class="desk/__DYNAMIC_MJT__" size="0.0052928 0.0274761 0.160275" pos="-0.194738 -0.0239435 -0.179452" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <site name="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo_ReceptacleCollider_0" class="desk//" pos="0 -0.0103088 -0.176667" quat="0 1 0 0" size="0.190825 0.032165 0.155209" type="box" rgba="1 0 0 1"/>
+      </body>
+      <body name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo" pos="0.0051 -0.37076 0.00585">
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo" class="desk/__VISUAL_MJT__" type="mesh" material="desk/material_RoboTHOR_Desk_Lisabo_Wood_Mat" mesh="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_0" class="desk/__DYNAMIC_MJT__" size="0.0441833 0.0577641 0.0301099" pos="0.475635 0.0577641 -0.199171" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_1" class="desk/__DYNAMIC_MJT__" size="0.0441833 0.0577641 0.0301099" pos="0.475635 0.0577641 0.193129" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_2" class="desk/__DYNAMIC_MJT__" size="0.0441833 0.0577641 0.0301099" pos="-0.473365 0.0577641 -0.199171" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_3" class="desk/__DYNAMIC_MJT__" size="0.0441833 0.0577641 0.0301099" pos="-0.473365 0.0577641 0.193129" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_4" class="desk/__DYNAMIC_MJT__" size="0.0386926 0.354262 0.0301099" pos="0.420108 0.368941 -0.166757" quat="-0.0614931 0.994287 0.0870843 -0.00538585" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_5" class="desk/__DYNAMIC_MJT__" size="0.0386926 0.354262 0.0301099" pos="0.420671 0.367746 0.159317" quat="0.0554195 0.994644 0.0871155 0.0048539" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_6" class="desk/__DYNAMIC_MJT__" size="0.0386926 0.354262 0.0301099" pos="-0.424273 0.366513 0.158317" quat="0.0554065 0.99441 -0.08974 -0.00500013" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_7" class="desk/__DYNAMIC_MJT__" size="0.0386926 0.354262 0.0301099" pos="-0.422196 0.373691 -0.165418" quat="-0.056487 0.99435 -0.0898324 0.00290049" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_8" class="desk/__DYNAMIC_MJT__" size="0.593136 0.016084 0.226049" pos="0.00510395 0.725444 -0.00323185" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_9" class="desk/__DYNAMIC_MJT__" size="0.00884989 0.0378623 0.159325" pos="0.206 0.672301 -0.000899501" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <geom name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_PrimitiveCollider_10" class="desk/__DYNAMIC_MJT__" size="0.00884989 0.0378623 0.159325" pos="-0.2078 0.672301 -0.000899501" quat="0 1 0 0" type="box" rgba="0 1 0 1"/>
+        <site name="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo_ReceptacleCollider_0" class="desk//" pos="0.00157809 0.80557 -0.00444075" quat="0 1 0 0" size="0.592262 0.0665698 0.225072" type="box" rgba="1 0 0 1"/>
+      </body>
+    </body>
+    <body name="bookcase/Shelving_Unit_206_1" pos="0.7 -0.5 0.35" quat="0.5 0.5 -0.5 0.5">
+      <body name="bookcase/Shelving_Unit_206_1_mesh" pos="0 -1.10016 -0.01781">
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_0" class="bookcase/__VISUAL_MJT__" type="mesh" density="450" material="bookcase/material_MetalMat4" mesh="bookcase/Shelving_Unit_206_1_mesh_0"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_1" class="bookcase/__VISUAL_MJT__" type="mesh" density="450" material="bookcase/material_TexturesCom_WoodFine0050_1_seamless_S_white" mesh="bookcase/Shelving_Unit_206_1_mesh_1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_0" class="bookcase/__DYNAMIC_MJT__" size="0.33296 0.0176412 0.148588" pos="0 0.16 0" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_1" class="bookcase/__DYNAMIC_MJT__" size="0.0133242 0.0758829 0.0104814" pos="0.2947 0.0747417 0.1152" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_2" class="bookcase/__DYNAMIC_MJT__" size="0.0133242 0.0758829 0.0104814" pos="0.2947 0.0747417 -0.1191" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_3" class="bookcase/__DYNAMIC_MJT__" size="0.0133242 0.0758829 0.0104814" pos="-0.2953 0.0747417 0.1152" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_4" class="bookcase/__DYNAMIC_MJT__" size="0.0133242 0.0758829 0.0104814" pos="-0.2953 0.0747417 -0.1191" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_5" class="bookcase/__DYNAMIC_MJT__" size="0.324636 0.0167591 0.148588" pos="0 1.3004 0" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_6" class="bookcase/__DYNAMIC_MJT__" size="0.324636 0.0167591 0.148588" pos="0 1.599 0" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_7" class="bookcase/__DYNAMIC_MJT__" size="0.324636 0.0167591 0.148588" pos="0 1.8843 0" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_8" class="bookcase/__DYNAMIC_MJT__" size="0.324636 0.0126636 0.148588" pos="0 2.18768 0" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_9" class="bookcase/__DYNAMIC_MJT__" size="0.013959 1.02568 0.150592" pos="-0.3136 1.17444 0" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_10" class="bookcase/__DYNAMIC_MJT__" size="0.013959 1.02568 0.150592" pos="0.3115 1.17444 0" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <geom name="bookcase/Shelving_Unit_206_1_mesh_PrimitiveCollider_11" class="bookcase/__DYNAMIC_MJT__" size="0.328798 1.02245 0.0222883" pos="0 1.179 -0.13" quat="0 1 0 0" type="box" density="450" rgba="0 1 0 1"/>
+        <site name="bookcase/Shelving_Unit_206_1_mesh_Receptacle_0" class="bookcase//" pos="0.000840441 1.45075 0.02" quat="0 1 0 0" size="0.300702 0.132487 0.127442" type="box" rgba="1 0 0 1"/>
+        <site name="bookcase/Shelving_Unit_206_1_mesh_Receptacle_1" class="bookcase//" pos="0 1.74223 0.02" quat="0 1 0 0" size="0.296992 0.124083 0.12744" type="box" rgba="1 0 0 1"/>
+        <site name="bookcase/Shelving_Unit_206_1_mesh_Receptacle_2" class="bookcase//" pos="-0.0010598 2.0412 0.02" quat="0 1 0 0" size="0.296992 0.134143 0.12744" type="box" rgba="1 0 0 1"/>
+        <site name="bookcase/Shelving_Unit_206_1_mesh_Receptacle_3" class="bookcase//" pos="-0.0105598 0.723368 0.02" quat="0 1 0 0" size="0.293325 0.548209 0.12744" type="box" rgba="1 0 0 1"/>
+        <body name="bookcase/Shelving_Unit_206_1_Mesh_00" pos="-0.3025 0.736252 0.149197">
+          <joint name="bookcase/Shelving_Unit_206_1_joint" class="bookcase//" pos="0 0 0" axis="0 -1 0" range="0 1.5708" damping="0.1" frictionloss="1"/>
+          <geom name="bookcase/Shelving_Unit_206_1_Mesh_00" class="bookcase/__VISUAL_MJT__" type="mesh" density="100" material="bookcase/material_WhiteWoodClean" mesh="bookcase/Shelving_Unit_206_1_Mesh_00"/>
+          <geom name="bookcase/Shelving_Unit_206_1_Mesh_00_PrimitiveCollider_0" class="bookcase/__DYNAMIC_MJT__" size="0.153743 0.555041 0.01355" pos="0.148743 -0.00811356 -0.00722311" quat="0 1 0 0" type="box" density="100" rgba="0 1 0 1"/>
+          <body name="bookcase/Shelving_Unit_206_1_handle_1_600mm_00" pos="0.278 0 0" quat="0.707107 0 0 0.707107">
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_00" class="bookcase/__VISUAL_MJT__" type="mesh" material="bookcase/material_HammeredMetal_Dark" mesh="bookcase/Shelving_Unit_206_1_handle_1_600mm_00"/>
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_00_PrimitiveCollider_0" class="bookcase/__DYNAMIC_MJT__" size="0.005 0.294294" pos="0 0 0.0337" quat="0.5 0.5 -0.5 -0.5" type="capsule" rgba="0 1 0 1"/>
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_00_PrimitiveCollider_1" class="bookcase/__DYNAMIC_MJT__" size="0.00300522 0.013226" pos="-0.28914 7.90239e-09 0.0159" quat="0 1 -4.00288e-08 0" type="capsule" rgba="0 1 0 1"/>
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_00_PrimitiveCollider_2" class="bookcase/__DYNAMIC_MJT__" size="0.00300522 0.013226" pos="0.2878 -8.14199e-09 0.0159" quat="0 1 -4.00288e-08 0" type="capsule" rgba="0 1 0 1"/>
+          </body>
+        </body>
+        <body name="bookcase/Shelving_Unit_206_1_Mesh_01" pos="0.3025 0.736248 0.1492">
+          <joint name="bookcase/Shelving_Unit_206_1_Mesh_01__1" class="bookcase//" pos="0 0 0" axis="0 -1 0" range="-1.5708 0" damping="0.1" frictionloss="1"/>
+          <geom name="bookcase/Shelving_Unit_206_1_Mesh_01" class="bookcase/__VISUAL_MJT__" type="mesh" density="100" material="bookcase/material_WhiteWoodClean" mesh="bookcase/Shelving_Unit_206_1_Mesh_01"/>
+          <geom name="bookcase/Shelving_Unit_206_1_Mesh_01_PrimitiveCollider_0" class="bookcase/__DYNAMIC_MJT__" size="0.151816 0.555072 0.014548" pos="-0.150441 -0.00820112 -0.00742459" quat="0 1 0 0" type="box" density="100" rgba="0 1 0 1"/>
+          <body name="bookcase/Shelving_Unit_206_1_handle_1_600mm_01" pos="-0.277 0 0" quat="0.707107 0 0 0.707107">
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_01" class="bookcase/__VISUAL_MJT__" type="mesh" material="bookcase/material_HammeredMetal_Dark" mesh="bookcase/Shelving_Unit_206_1_handle_1_600mm_01"/>
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_01_PrimitiveCollider_0" class="bookcase/__DYNAMIC_MJT__" size="0.005 0.294294" pos="0 0 0.0337" quat="0.5 0.5 -0.5 -0.5" type="capsule" rgba="0 1 0 1"/>
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_01_PrimitiveCollider_1" class="bookcase/__DYNAMIC_MJT__" size="0.00300522 0.013226" pos="-0.28914 7.90239e-09 0.0159" quat="0 1 -4.00288e-08 0" type="capsule" rgba="0 1 0 1"/>
+            <geom name="bookcase/Shelving_Unit_206_1_handle_1_600mm_01_PrimitiveCollider_2" class="bookcase/__DYNAMIC_MJT__" size="0.00300522 0.013226" pos="0.2878 -8.142e-09 0.0159" quat="0 1 -4.00288e-08 0" type="capsule" rgba="0 1 0 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+    <body name="robot_0/base" mocap="true">
+      <geom size="0.25 0.25 0.375" pos="0 0 0.375" type="box" material="robot_0/robot_base_material"/>
+      <body name="robot_0/fr3_link0" childclass="robot_0/fr3" pos="0 0 0.75">
+        <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link0_0"/>
+        <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link0_1"/>
+        <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link0_2"/>
+        <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link0_3"/>
+        <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link0_4"/>
+        <geom class="robot_0/visual" material="robot_0/red" mesh="robot_0/link0_5"/>
+        <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link0_6"/>
+        <geom name="robot_0/fr3_link0_collision" class="robot_0/collision" mesh="robot_0/link0_coll"/>
+        <body name="robot_0/fr3_link1" pos="0 0 0.333">
+          <inertial pos="4.128e-07 -0.0181251 -0.0386036" quat="0.999901 0.0021545 0.00429041 0.0132325" mass="2.92747" diaginertia="0.0186043 0.0181194 0.00538716"/>
+          <joint name="robot_0/fr3_joint1" pos="0 0 0" axis="0 0 1" range="-2.7437 2.7437" actuatorfrcrange="-87 87"/>
+          <geom name="robot_0/fr3_link1_collision" class="robot_0/collision" mesh="robot_0/link1_coll"/>
+          <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link1"/>
+          <body name="robot_0/fr3_link2" quat="0.707107 -0.707107 0 0">
+            <inertial pos="0.00318289 -0.0743222 0.00881461" quat="0.356855 0.680818 -0.434812 0.469126" mass="2.93554" diaginertia="0.0299291 0.0299291 0.0299291"/>
+            <joint name="robot_0/fr3_joint2" pos="0 0 0" axis="0 0 1" range="-1.7837 1.7837" actuatorfrcrange="-87 87"/>
+            <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link2"/>
+            <geom name="robot_0/fr3_link2_collision" class="robot_0/collision" mesh="robot_0/link2_coll"/>
+            <body name="robot_0/fr3_link3" pos="0 -0.316 0" quat="0.707107 0.707107 0 0">
+              <inertial pos="0.0407016 -0.00482006 -0.0289731" quat="0.950032 -0.148357 0.229935 0.150201" mass="2.2449" diaginertia="0.0140109 0.0140109 0.0140109"/>
+              <joint name="robot_0/fr3_joint3" pos="0 0 0" axis="0 0 1" range="-2.9007 2.9007" actuatorfrcrange="-87 87"/>
+              <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link3_0"/>
+              <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link3_1"/>
+              <geom name="robot_0/fr3_link3_collision" class="robot_0/collision" mesh="robot_0/link3_coll"/>
+              <body name="robot_0/fr3_link4" pos="0.0825 0 0" quat="0.707107 0.707107 0 0">
+                <inertial pos="-0.0459101 0.0630493 -0.00851879" quat="0.23761 0.892458 -0.00078702 0.383484" mass="2.6156" diaginertia="0.0206104 0.0206104 0.0206104"/>
+                <joint name="robot_0/fr3_joint4" pos="0 0 0" axis="0 0 1" range="-3.0421 -0.1518" actuatorfrcrange="-87 87"/>
+                <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link4_0"/>
+                <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link4_1"/>
+                <geom name="robot_0/fr3_link4_collision" class="robot_0/collision" mesh="robot_0/link4_coll"/>
+                <body name="robot_0/fr3_link5" pos="-0.0825 0.384 0" quat="0.707107 -0.707107 0 0">
+                  <inertial pos="-0.00160396 0.0292536 -0.0972966" quat="0.922285 0.098826 0.0982562 -0.360514" mass="2.32712" diaginertia="0.0182879 0.0182879 0.0182879"/>
+                  <joint name="robot_0/fr3_joint5" pos="0 0 0" axis="0 0 1" range="-2.8065 2.8065" actuatorfrcrange="-12 12"/>
+                  <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link5_0"/>
+                  <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link5_1"/>
+                  <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link5_2"/>
+                  <geom name="robot_0/fr3_link5_collision" class="robot_0/collision" mesh="robot_0/link5_coll"/>
+                  <body name="robot_0/fr3_link6" quat="0.707107 0.707107 0 0">
+                    <inertial pos="0.0597131 -0.0410295 -0.0101693" quat="0.593933 0.525442 0.520644 0.316361" mass="1.81704" diaginertia="0.00483538 0.00483538 0.00483538"/>
+                    <joint name="robot_0/fr3_joint6" pos="0 0 0" axis="0 0 1" range="0.5445 4.5169" actuatorfrcrange="-12 12"/>
+                    <geom class="robot_0/visual" material="robot_0/button_green" mesh="robot_0/link6_0"/>
+                    <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link6_1"/>
+                    <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link6_2"/>
+                    <geom class="robot_0/visual" material="robot_0/gray" mesh="robot_0/link6_3"/>
+                    <geom class="robot_0/visual" material="robot_0/button_red" mesh="robot_0/link6_4"/>
+                    <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link6_5"/>
+                    <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link6_6"/>
+                    <geom class="robot_0/visual" material="robot_0/button_blue" mesh="robot_0/link6_7"/>
+                    <geom name="robot_0/fr3_link6_collision" class="robot_0/collision" mesh="robot_0/link6_coll"/>
+                    <body name="robot_0/fr3_link7" pos="0.088 0 0" quat="0.707107 0.707107 0 0">
+                      <inertial pos="0.00452258 0.00862619 -0.0161633" quat="0.120255 0.394761 -0.799132 0.437139" mass="0.627143" diaginertia="3.076e-07 3.076e-07 3.076e-07"/>
+                      <joint name="robot_0/fr3_joint7" pos="0 0 0" axis="0 0 1" range="-3.0159 3.0159" actuatorfrcrange="-12 12"/>
+                      <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link7_0"/>
+                      <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link7_1"/>
+                      <geom class="robot_0/visual" material="robot_0/white" mesh="robot_0/link7_2"/>
+                      <geom class="robot_0/visual" material="robot_0/black" mesh="robot_0/link7_3"/>
+                      <geom name="robot_0/fr3_link7_collision" class="robot_0/collision" mesh="robot_0/link7_coll"/>
+                      <site name="robot_0/attachment_site" pos="0 0 0.107"/>
+                      <body name="robot_0/wrist_cam_body" pos="0.05 0 0.107">
+                        <camera name="robot_0/wrist_cam" pos="0 0 0" quat="0 0.707107 0.707107 0" fovy="90"/>
+                      </body>
+                      <frame childclass="robot_0/fr3">
+                        <body name="robot_0/gripper/base" childclass="robot_0/gripper/2f85" pos="0 0 0.107" quat="0.707107 0 0 0.707107">
+                          <inertial pos="0 -2.70394e-05 0.0354675" quat="0.999999 -0.00152849 0 0" mass="0.777441" diaginertia="0.000260285 0.000225381 0.000152708"/>
+                          <geom class="robot_0/gripper/visual" pos="0 0 0.0108" quat="0 0 0 1" material="robot_0/gripper/black" mesh="robot_0/gripper/base"/>
+                          <geom class="robot_0/gripper/visual" pos="0 0 0.004" quat="0.707107 -0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/base_coupling"/>
+                          <geom class="robot_0/gripper/visual" pos="0 0 0.0108" quat="1 0 0 0" material="robot_0/gripper/metal" mesh="robot_0/gripper/c-a01-85-open"/>
+                          <geom class="robot_0/gripper/collision" mesh="robot_0/gripper/base"/>
+                          <site name="robot_0/gripper/grasp_site" pos="0 0 0.155" quat="0.707107 0 0 -0.707107" group="4" rgba="1 1 1 1"/>
+                          <camera name="robot_0/gripper/wrist_camera" pos="0.031 0.074 0.022" quat="-0.00563403 -0.000966282 0.985593 0.169037" resolution="1280 720" fovy="56.74"/>
+                          <body name="robot_0/gripper/left_driver" pos="-0.0306011 0.00475 0.0657045" quat="0.707107 -0.707107 0 0">
+                            <inertial pos="0 0.0177547 0.00107314" quat="0.681301 0.732003 0 0" mass="0.00899563" diaginertia="1.72352e-06 1.60906e-06 3.22006e-07"/>
+                            <joint name="robot_0/gripper/left_driver_joint" class="robot_0/gripper/driver" pos="0 0 0" axis="0 0 1"/>
+                            <geom class="robot_0/gripper/visual" pos="0.0306011 0.0549045 -0.0047" quat="0.707107 0.707107 0 0" material="robot_0/gripper/metal" mesh="robot_0/gripper/driver"/>
+                            <geom class="robot_0/gripper/collision" pos="0.0306011 0.0549045 -0.0047" quat="0.707107 0.707107 0 0" mesh="robot_0/gripper/driver"/>
+                            <body name="robot_0/gripper/left_coupler" pos="-0.0314249 0.00453223 -0.0102" quat="0 0 0 1">
+                              <inertial pos="0 0.00301209 0.0232175" quat="0.705636 -0.0455904 0.0455904 0.705636" mass="0.0140974" diaginertia="4.16206e-06 3.52216e-06 8.88131e-07"/>
+                              <geom class="robot_0/gripper/visual" pos="-0.062026 -0.0503723 0.0055" quat="0.707107 -0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/coupler"/>
+                              <geom class="robot_0/gripper/collision" pos="-0.062026 -0.0503723 0.0055" quat="0.707107 -0.707107 0 0" mesh="robot_0/gripper/coupler"/>
+                            </body>
+                          </body>
+                          <body name="robot_0/gripper/left_spring_link" pos="-0.0127 -0.012 0.07222" quat="0.707107 -0.707107 0 0">
+                            <inertial pos="-8.65005e-09 0.0181624 0.0212658" quat="0.663403 -0.244737 0.244737 0.663403" mass="0.0221642" diaginertia="8.96853e-06 6.71733e-06 2.63931e-06"/>
+                            <joint name="robot_0/gripper/left_spring_link_joint" class="robot_0/gripper/spring_link" pos="0 0 0" axis="0 0 1" springref="2.62"/>
+                            <geom class="robot_0/gripper/visual" pos="0.0127 0.06142 0.01205" quat="0.707107 0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/spring_link"/>
+                            <geom class="robot_0/gripper/collision" pos="0.0127 0.06142 0.01205" quat="0.707107 0.707107 0 0" mesh="robot_0/gripper/spring_link"/>
+                            <body name="robot_0/gripper/left_follower" pos="-0.0382079 -0.0425003 0.00295" quat="0 -1 -1.90231e-05 0">
+                              <inertial pos="0 -0.011046 0.0124786" quat="0.986437 0.164143 0 0" mass="0.0125222" diaginertia="2.67415e-06 2.4559e-06 6.02031e-07"/>
+                              <joint name="robot_0/gripper/left_follower" class="robot_0/gripper/follower" pos="0 0 0" axis="0 0 1"/>
+                              <geom class="robot_0/gripper/visual" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/follower"/>
+                              <geom class="robot_0/gripper/visual" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/tongue"/>
+                              <geom class="robot_0/gripper/collision" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" mesh="robot_0/gripper/follower"/>
+                              <geom class="robot_0/gripper/collision" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" mesh="robot_0/gripper/tongue"/>
+                              <body name="robot_0/gripper/left_pad" pos="-0.0377897 -0.103916 -0.0091" quat="0.707107 -0.707107 0 0">
+                                <geom name="robot_0/gripper/left_pad1" class="robot_0/gripper/pad_box1" pos="0.043258 0 0.12" mass="1e-06"/>
+                                <geom name="robot_0/gripper/left_pad2" class="robot_0/gripper/pad_box2" pos="0.043258 0 0.13875" mass="1e-06"/>
+                              </body>
+                            </body>
+                          </body>
+                          <body name="robot_0/gripper/right_driver" pos="0.0306011 -0.00475 0.0657045" quat="0 0 -0.707107 0.707107">
+                            <inertial pos="2.96931e-12 0.0177547 0.00107314" quat="0.681301 0.732003 0 0" mass="0.00899563" diaginertia="1.72352e-06 1.60906e-06 3.22006e-07"/>
+                            <joint name="robot_0/gripper/right_driver_joint" class="robot_0/gripper/driver" pos="0 0 0" axis="0 0 1"/>
+                            <geom class="robot_0/gripper/visual" pos="0.0306011 0.0549045 -0.0047" quat="0.707107 0.707107 0 0" material="robot_0/gripper/metal" mesh="robot_0/gripper/driver"/>
+                            <geom class="robot_0/gripper/collision" pos="0.0306011 0.0549045 -0.0047" quat="0.707107 0.707107 0 0" mesh="robot_0/gripper/driver"/>
+                            <body name="robot_0/gripper/right_coupler" pos="-0.0314249 0.00453223 -0.0102" quat="0 0 0 1">
+                              <inertial pos="0 0.00301209 0.0232175" quat="0.705636 -0.0455904 0.0455904 0.705636" mass="0.0140974" diaginertia="4.16206e-06 3.52216e-06 8.88131e-07"/>
+                              <geom class="robot_0/gripper/visual" pos="-0.062026 -0.0503723 0.0055" quat="0.707107 -0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/coupler"/>
+                              <geom class="robot_0/gripper/collision" pos="-0.062026 -0.0503723 0.0055" quat="0.707107 -0.707107 0 0" mesh="robot_0/gripper/coupler"/>
+                            </body>
+                          </body>
+                          <body name="robot_0/gripper/right_spring_link" pos="0.0127 0.012 0.07222" quat="0 0 -0.707107 0.707107">
+                            <inertial pos="-8.65005e-09 0.0181624 0.0212658" quat="0.663403 -0.244737 0.244737 0.663403" mass="0.0221642" diaginertia="8.96853e-06 6.71733e-06 2.63931e-06"/>
+                            <joint name="robot_0/gripper/right_spring_link_joint" class="robot_0/gripper/spring_link" pos="0 0 0" axis="0 0 1" springref="2.62"/>
+                            <geom class="robot_0/gripper/visual" pos="0.0127 0.06142 0.01205" quat="0.707107 0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/spring_link"/>
+                            <geom class="robot_0/gripper/collision" pos="0.0127 0.06142 0.01205" quat="0.707107 0.707107 0 0" mesh="robot_0/gripper/spring_link"/>
+                            <body name="robot_0/gripper/right_follower" pos="-0.0382079 -0.0425003 0.00295" quat="0 -1 0 0">
+                              <inertial pos="0 -0.011046 0.0124786" quat="0.986437 0.164143 0 0" mass="0.0125222" diaginertia="2.67415e-06 2.4559e-06 6.02031e-07"/>
+                              <joint name="robot_0/gripper/right_follower_joint" class="robot_0/gripper/follower" pos="0 0 0" axis="0 0 1"/>
+                              <geom class="robot_0/gripper/visual" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/tongue"/>
+                              <geom class="robot_0/gripper/visual" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" material="robot_0/gripper/black" mesh="robot_0/gripper/follower"/>
+                              <geom class="robot_0/gripper/collision" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" mesh="robot_0/gripper/tongue"/>
+                              <geom class="robot_0/gripper/collision" pos="0.0509079 -0.10392 -0.0091" quat="0.707107 -0.707107 0 0" mesh="robot_0/gripper/follower"/>
+                              <body name="robot_0/gripper/right_pad" pos="-0.0377897 -0.103916 -0.0091" quat="0.707107 -0.707107 0 0">
+                                <geom name="robot_0/gripper/right_pad1" class="robot_0/gripper/pad_box1" pos="0.043258 0 0.12" mass="1e-06"/>
+                                <geom name="robot_0/gripper/right_pad2" class="robot_0/gripper/pad_box2" pos="0.043258 0 0.13875" mass="1e-06"/>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </frame>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude name="desk///unnamed_contact_0" body1="desk/RoboTHOR_desk_lisabo_robothor_desk_drawer_lisabo" body2="desk/RoboTHOR_desk_lisabo_robothor_desk_lisabo"/>
+    <exclude name="bookcase///unnamed_contact_0" body1="bookcase/Shelving_Unit_206_1_mesh" body2="bookcase/Shelving_Unit_206_1_Mesh_00"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_mesh" body2="bookcase/Shelving_Unit_206_1_Mesh_00"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_mesh" body2="bookcase/Shelving_Unit_206_1_handle_1_600mm_00"/>
+    <exclude name="bookcase///unnamed_contact_1" body1="bookcase/Shelving_Unit_206_1_mesh" body2="bookcase/Shelving_Unit_206_1_Mesh_01"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_mesh" body2="bookcase/Shelving_Unit_206_1_Mesh_01"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_mesh" body2="bookcase/Shelving_Unit_206_1_handle_1_600mm_01"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_Mesh_00" body2="bookcase/Shelving_Unit_206_1_handle_1_600mm_00"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_Mesh_00" body2="bookcase/Shelving_Unit_206_1_Mesh_01"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_Mesh_00" body2="bookcase/Shelving_Unit_206_1_handle_1_600mm_01"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_handle_1_600mm_00" body2="bookcase/Shelving_Unit_206_1_Mesh_01"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_handle_1_600mm_00" body2="bookcase/Shelving_Unit_206_1_handle_1_600mm_01"/>
+    <exclude body1="bookcase/Shelving_Unit_206_1_Mesh_01" body2="bookcase/Shelving_Unit_206_1_handle_1_600mm_01"/>
+    <exclude body1="robot_0/gripper/base" body2="robot_0/gripper/left_driver"/>
+    <exclude body1="robot_0/gripper/base" body2="robot_0/gripper/left_spring_link"/>
+    <exclude body1="robot_0/gripper/base" body2="robot_0/gripper/right_driver"/>
+    <exclude body1="robot_0/gripper/base" body2="robot_0/gripper/right_spring_link"/>
+    <exclude body1="robot_0/gripper/left_coupler" body2="robot_0/gripper/left_follower"/>
+    <exclude body1="robot_0/gripper/right_coupler" body2="robot_0/gripper/right_follower"/>
+  </contact>
+
+  <equality>
+    <connect body1="robot_0/gripper/right_follower" body2="robot_0/gripper/right_coupler" anchor="-0.0179014 -0.00651468 0.0044" solref="0.005" solimp="0.95 0.99"/>
+    <connect body1="robot_0/gripper/left_follower" body2="robot_0/gripper/left_coupler" anchor="-0.0179014 -0.00651468 0.0044" solref="0.005" solimp="0.95 0.99"/>
+    <joint joint1="robot_0/gripper/right_driver_joint" joint2="robot_0/gripper/left_driver_joint" polycoef="0 1 0 0 0" solref="0.005" solimp="0.95 0.99"/>
+  </equality>
+
+  <tendon>
+    <fixed name="robot_0/gripper/split">
+      <joint joint="robot_0/gripper/right_driver_joint" coef="0.485"/>
+      <joint joint="robot_0/gripper/left_driver_joint" coef="0.485"/>
+    </fixed>
+  </tendon>
+
+  <actuator>
+    <general name="robot_0/fr3_joint1" class="robot_0/fr3" joint="robot_0/fr3_joint1" ctrlrange="-2.7437 2.7437" gainprm="4500" biasprm="0 -4500 -450"/>
+    <general name="robot_0/fr3_joint2" class="robot_0/fr3" joint="robot_0/fr3_joint2" ctrlrange="-1.7837 1.7837" gainprm="4500" biasprm="0 -4500 -450"/>
+    <general name="robot_0/fr3_joint3" class="robot_0/fr3" joint="robot_0/fr3_joint3" ctrlrange="-2.9007 2.9007" gainprm="3500" biasprm="0 -3500 -350"/>
+    <general name="robot_0/fr3_joint4" class="robot_0/fr3" joint="robot_0/fr3_joint4" ctrlrange="-3.0421 -0.1518" gainprm="3500" biasprm="0 -3500 -350"/>
+    <general name="robot_0/fr3_joint5" class="robot_0/fr3" joint="robot_0/fr3_joint5" ctrlrange="-2.8065 2.8065" gainprm="2000" biasprm="0 -2000 -200"/>
+    <general name="robot_0/fr3_joint6" class="robot_0/fr3" joint="robot_0/fr3_joint6" ctrlrange="0.5445 4.5169" gainprm="2000" biasprm="0 -2000 -200"/>
+    <general name="robot_0/fr3_joint7" class="robot_0/fr3" joint="robot_0/fr3_joint7" ctrlrange="-3.0159 3.0159" gainprm="2000" biasprm="0 -2000 -200"/>
+    <general name="robot_0/gripper/fingers_actuator" class="robot_0/gripper/2f85" tendon="robot_0/gripper/split" ctrlrange="0 255" forcerange="-5 5" gainprm="0.313725" biasprm="0 -100 -10"/>
+  </actuator>
+</mujoco>

@@ -1,6 +1,6 @@
 {
-  "description": "Franka book-to-shelf and pencil-to-cup pick-and-place benchmark",
-  "created_at": "2026-04-08",
+  "description": "Franka tissue-box-to-bookcase and pencil-to-cup benchmark (custom scene)",
+  "created_at": "2026-04-09",
   "num_episodes": 2,
   "num_houses": 1,
   "task_cls_counts": {
@@ -9,5 +9,5 @@
   "robot_counts": {
     "franka_droid": 2
   },
-  "benchmark_created_date": "2026-04-08"
+  "benchmark_created_date": "2026-04-09"
 }

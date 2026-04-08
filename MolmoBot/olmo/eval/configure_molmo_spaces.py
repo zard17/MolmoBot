@@ -309,6 +309,40 @@ class FrankaState8ClampAbsPosConfig(JsonBenchmarkEvalConfig):
                     self.robot_config.command_mode["gripper"] = "joint_rel_position"
 
 
+
+class FrankaCustomSceneEvalConfig(FrankaState8ClampAbsPosConfig):
+    """Eval config for custom scene benchmarks using absolute XML paths.
+
+    The default pipeline expects a 'ceiling' scene variant which doesn't exist
+    for custom scenes. This config patches the dataset index map so the ceiling
+    variant points to the same file as the base scene.
+    """
+
+    def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)
+        # Monkey-patch JsonEvalTaskSampler._get_dataset_index_map to fill in
+        # the ceiling variant for absolute-path scene datasets.
+        import os
+        from molmo_spaces.tasks.json_eval_task_sampler import JsonEvalTaskSampler
+
+        _orig = JsonEvalTaskSampler._get_dataset_index_map
+
+        def _patched(self_ts):
+            result = _orig(self_ts)
+            if result is None:
+                return result
+            for split_map in result.values():
+                for idx, variants in split_map.items():
+                    if isinstance(variants, dict):
+                        base = variants.get("base")
+                        if base and isinstance(base, str) and os.path.isabs(base):
+                            if variants.get("ceiling") is None:
+                                variants["ceiling"] = base
+            return result
+
+        JsonEvalTaskSampler._get_dataset_index_map = _patched
+
+
 class FrankaAbsPosRandomCamConfig(JsonBenchmarkEvalConfig):
     policy_config: SynthVLAPolicyConfig = SynthVLAPolicyConfig(action_type="joint_pos")
     policy_config.action_keys['arm'] = "joint_pos"
