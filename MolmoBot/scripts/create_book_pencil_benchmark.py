@@ -71,7 +71,7 @@ CAMERAS = [
     },
 ]
 
-DESK_SURFACE_Z = 0.668
+DESK_SURFACE_Z = 0.69
 
 
 def build_custom_scene_xml() -> None:
@@ -106,7 +106,7 @@ def build_custom_scene_xml() -> None:
     for j in desk_body.joints:
         if j.type == mujoco.mjtJoint.mjJNT_FREE:
             j.damping = 1e10
-    desk_frame = spec.worldbody.add_frame(pos=[0.8, 0.55, 0.313], quat=THOR_QUAT)
+    desk_frame = spec.worldbody.add_frame(pos=[0.8, 0.55, 0.33], quat=THOR_QUAT)
     desk_frame.attach_body(desk_body, "desk/", "")
 
     # Bookcase (static) — to the right (-Y side), open shelves facing robot
@@ -117,7 +117,7 @@ def build_custom_scene_xml() -> None:
         if j.type == mujoco.mjtJoint.mjJNT_FREE:
             j.damping = 1e10
     shelf_quat = (R.from_euler("z", 180, degrees=True) * R.from_euler("x", 90, degrees=True)).as_quat(scalar_first=True)
-    shelf_frame = spec.worldbody.add_frame(pos=[0.55, -0.5, 1.028], quat=shelf_quat)
+    shelf_frame = spec.worldbody.add_frame(pos=[0.55, -0.5, 1.05], quat=shelf_quat)
     shelf_frame.attach_body(shelf_body, "bookcase/", "")
 
     # Robot at origin, facing +X toward furniture
@@ -156,8 +156,8 @@ def make_pose(x, y, z, quat=None):
 def create_box_to_bookcase_episode(scene_xml: str) -> dict:
     """Pick Tissue_Box_1 from desk → place in bookcase shelf."""
     uid = "Tissue_Box_1"
-    obj_pose = make_pose(0.7, 0.5, DESK_SURFACE_Z + 0.04)
-    obj_goal = make_pose(0.7, 0.5, DESK_SURFACE_Z + 0.09)
+    obj_pose = make_pose(0.7, 0.5, DESK_SURFACE_Z + 0.1)
+    obj_goal = make_pose(0.7, 0.5, DESK_SURFACE_Z + 0.15)
     shelf_pose = make_pose(0.55, -0.5, 1.2)
 
     return {
@@ -201,9 +201,9 @@ def create_pencil_to_cup_episode(scene_xml: str) -> dict:
     pencil_uid = "Pencil_1"
     cup_uid = "Cup_5"
 
-    pencil_pose = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.01)
-    pencil_goal = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.06)
-    cup_pose = make_pose(0.6, 0.6, DESK_SURFACE_Z + 0.07)
+    pencil_pose = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.05)
+    pencil_goal = make_pose(0.7, 0.35, DESK_SURFACE_Z + 0.10)
+    cup_pose = make_pose(0.6, 0.6, DESK_SURFACE_Z + 0.12)
 
     return {
         "source": None,
