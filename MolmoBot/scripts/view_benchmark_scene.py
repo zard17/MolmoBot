@@ -76,15 +76,12 @@ def build_scene():
     )
 
     # --- Furniture (static) ---
-    # Desk to the left of robot (+Y side), pushed forward and away to clear pedestal
-    # Lower z from 0.38 to 0.25 so legs sit closer to ground
-    attach_static(spec, "RoboTHOR_desk_lisabo", pos=[0.8, 0.55, 0.25], prefix="desk/")
+    # Desk: z=0.313 puts legs on floor, surface at ~0.668
+    attach_static(spec, "RoboTHOR_desk_lisabo", pos=[0.8, 0.55, 0.313], prefix="desk/")
 
-    # Bookcase to the right of robot (-Y side), rotated 180° around Z
-    # so open shelves face the robot (+Y direction).
-    # x-90 converts Y-up to Z-up, then z-180 flips the front to face +Y.
+    # Bookcase: z=1.028 puts bottom on floor. Rotated z-180 so shelves face robot.
     shelf_quat = (R.from_euler("z", 180, degrees=True) * R.from_euler("x", 90, degrees=True)).as_quat(scalar_first=True)
-    attach_static(spec, "Shelving_Unit_206_1", pos=[0.55, -0.5, 0.35], quat=shelf_quat, prefix="bookcase/")
+    attach_static(spec, "Shelving_Unit_206_1", pos=[0.55, -0.5, 1.028], quat=shelf_quat, prefix="bookcase/")
 
     # --- Robot ---
     robot_config = FrankaRobotConfig(base_size=[0.5, 0.5, 0.75])
@@ -102,16 +99,19 @@ def build_scene():
     )
 
     # --- Manipulable objects (dynamic) ---
-    desk_surface_z = 0.63  # lowered to match new desk z
+    # Desk surface at z ≈ 0.668
+    desk_surface_z = 0.668
 
     # Tissue box on the desk (task 1: pick and place in bookcase)
-    attach_dynamic(spec, "Tissue_Box_1", pos=[0.7, 0.5, desk_surface_z + 0.08], prefix="pickup_object/")
+    # half_h = 0.034, so z = surface + 0.034
+    attach_dynamic(spec, "Tissue_Box_1", pos=[0.7, 0.5, desk_surface_z + 0.04], prefix="pickup_object/")
 
     # Pencil on the desk (task 2: pick and place in cup)
-    attach_dynamic(spec, "Pencil_1", pos=[0.7, 0.35, desk_surface_z + 0.02], prefix="pickup_pencil/")
+    attach_dynamic(spec, "Pencil_1", pos=[0.7, 0.35, desk_surface_z + 0.01], prefix="pickup_pencil/")
 
     # Cup on the desk (receptacle for pencil)
-    attach_dynamic(spec, "Cup_5", pos=[0.6, 0.6, desk_surface_z + 0.08], prefix="place_receptacle/")
+    # half_h = 0.069, so z = surface + 0.069
+    attach_dynamic(spec, "Cup_5", pos=[0.6, 0.6, desk_surface_z + 0.07], prefix="place_receptacle/")
 
     # Compile
     model = spec.compile()
