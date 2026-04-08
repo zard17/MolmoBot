@@ -19,7 +19,9 @@ python run_eval_with_glfw.py \
     --benchmark_path ./benchmarks/minimal_benchmark \
     --eval_config_cls olmo.eval.configure_molmo_spaces:FrankaState8ClampAbsPosConfig \
     --task_horizon 600 \
-    --output_dir ./minimal_eval_results
+    --output_dir ./minimal_eval_results \
+    --use_filament \
+    --enable_viewer 
 
 # 4. 결과 확인
 ls -la minimal_eval_results/FrankaState8ClampAbsPosConfig/
@@ -87,7 +89,6 @@ python run_eval_with_glfw.py \
     --eval_config_cls olmo.eval.configure_molmo_spaces:FrankaState8ClampAbsPosConfig \
     --task_horizon 600 \
     --output_dir ./minimal_eval_results
-    --use-filament
 ```
 
 첫 실행 시 다음이 표시됩니다:
@@ -161,8 +162,17 @@ python run_eval_with_glfw.py \
     --task_horizon 600 \
     --output_dir ./minimal_eval_results \
     --use_filament \
+    --enable_viewer \
     --environment_light_intensity 15000
 ```
+
+### 주요 옵션 설명
+
+| 옵션 | 설명 |
+|------|------|
+| `--use_filament` | Ubuntu에서 OpenGL 관련 오류를 방지합니다. MuJoCo의 Filament 렌더러를 사용하여 headless 환경에서도 안정적인 렌더링을 지원합니다. Ubuntu 서버나 OpenGL 드라이버 문제가 있는 환경에서 권장됩니다. |
+| `--enable_viewer` | MuJoCo 뷰어를 활성화합니다. 이 옵션을 사용하면 실시간으로 로봇 시뮬레이션을 시각적으로 확인할 수 있습니다. 디버깅이나 데모 목적으로 유용합니다. |
+| `--environment_light_intensity` | 환경 조명 강도를 설정합니다. 기본값보다 밝은 환경이 필요할 때 사용합니다. |
 
 ---
 
