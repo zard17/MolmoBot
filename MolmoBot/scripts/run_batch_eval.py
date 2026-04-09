@@ -1,19 +1,23 @@
 """
 Batch evaluation: run multiple object combinations and generate a report.
 
-Loads the policy once, then runs all task combinations sequentially.
-Outputs a markdown report with Thor vs Objaverse success rate comparison
-and a CSV file for further analysis.
+Supports two scene modes:
+  - "procthor": Original ProcTHOR val house 0 (training distribution)
+  - "custom": Custom scene with primitive desk + bookcase
+
+Generates a markdown report comparing success rates across:
+  - Scene type (ProcTHOR vs custom)
+  - Object type (Thor training objects vs Objaverse novel objects)
 
 Usage:
-    # Generate default config
+    # Generate default config (4 groups: scene × object type)
     python scripts/run_batch_eval.py --generate-config
 
     # Run batch evaluation
     python scripts/run_batch_eval.py --checkpoint_path <path> --config batch_config.json
 
-    # Quick test (5 steps per episode)
-    python scripts/run_batch_eval.py --checkpoint_path <path> --config batch_config.json --task_horizon_override 5
+    # Quick test (10 steps per episode)
+    python scripts/run_batch_eval.py --checkpoint_path <path> --config batch_config.json --task_horizon_override 10
 """
 
 import argparse
@@ -26,16 +30,15 @@ from datetime import datetime
 from pathlib import Path
 
 import mujoco
-import mujoco.viewer
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 
 from molmo_spaces.configs.robot_configs import FrankaRobotConfig
-from molmo_spaces.molmo_spaces_constants import ASSETS_DIR, get_robot_path
+from molmo_spaces.molmo_spaces_constants import ASSETS_DIR, get_robot_path, get_procthor_10k_houses
 from molmo_spaces.robots.franka import FrankaRobot
 from molmo_spaces.robots.robot_views.franka_droid_view import FrankaDroidRobotView
-from molmo_spaces.utils.lazy_loading_utils import install_uid
+from molmo_spaces.utils.lazy_loading_utils import install_uid, install_scene_with_objects_and_grasps_from_path
 
 import molmo_spaces
 
@@ -46,15 +49,18 @@ BENCHMARK_DIR = Path(__file__).resolve().parent.parent / "benchmarks" / "franka_
 RENDER_WIDTH = 640
 RENDER_HEIGHT = 360
 POLICY_DT_MS = 66
-DESK_TOP_Z = 0.75
 
-# Object categorization
-THOR_OBJECTS = {
-    "Mug_1", "Apple_1", "Egg_1", "Candle_1", "Tissue_Box_1",
-    "Pencil_1", "Pen_1", "Potato_1", "Tomato_1", "Watch_1",
-    "Cloth_1", "DishSponge_1", "Spatula_1", "Knife_1",
-    "Cup_5", "Bowl_3", "Vase_Open_1", "Plate_1",
-}
+# Custom scene desk surface
+CUSTOM_DESK_TOP_Z = 0.75
+
+# ProcTHOR scene: objects placed on countertop near robot at [6.8, 9.75]
+PROCTHOR_PICKUP_POS = [6.5, 10.1, 0.96]
+PROCTHOR_RECEPTACLE_POS = [7.1, 10.2, 1.01]
+PROCTHOR_ROBOT_POS = [6.8, 9.75]
+PROCTHOR_ROBOT_YAW = 90.0
+PROCTHOR_EXO_POS = [0.1, 0.57, 0.66]
+PROCTHOR_EXO_QUAT = [-0.3633, -0.1241, 0.4263, 0.8191]
+PROCTHOR_EXO_FOVY = 71.0
 
 OBJECT_NAMES = {
     "Mug_1": "mug", "Apple_1": "apple", "Egg_1": "egg",
@@ -64,37 +70,46 @@ OBJECT_NAMES = {
     "DishSponge_1": "sponge", "Spatula_1": "spatula", "Knife_1": "knife",
     "Cup_5": "cup", "Bowl_3": "bowl", "Vase_Open_1": "vase",
     "Plate_1": "plate", "bookcase": "bookcase",
+    "SaltShaker_1": "salt shaker",
 }
 
 OBJAVERSE_NAMES = {
     "45bb173c0384450487421b687bf3bf5b": "rustic shallow bowl",
     "d6fcfa410dfe402ba412cc7abe756cfd": "gray bowl",
     "cf937fff1d494219962d2031aec345aa": "pink seashell bowl",
-    "07ad36c0658e4eafa91f0137e49fad58": "round gray bowl",
-    "a37dbcc09514468ebcbed44cab5452f0": "rustic bowl with yellow interior",
 }
 
 
 def generate_default_config():
-    """Generate a default batch config with recommended combinations."""
-    thor_pickups = ["Mug_1", "Apple_1", "Egg_1", "Candle_1", "Tissue_Box_1"]
-    thor_receptacles = ["Bowl_3", "Cup_5", "bookcase"]
+    """Generate default config with 4 groups for comparison."""
+    thor_pickups = ["SaltShaker_1", "Mug_1", "Egg_1", "Candle_1", "Tomato_1"]
+    thor_receptacles = ["Bowl_3"]
     objaverse_receptacles = [
         "objaverse:45bb173c0384450487421b687bf3bf5b",
         "objaverse:d6fcfa410dfe402ba412cc7abe756cfd",
-        "objaverse:cf937fff1d494219962d2031aec345aa",
     ]
 
     tasks = []
-    # Thor pickup × Thor receptacle
+
+    # Group A: ProcTHOR scene + Thor objects (baseline — closest to training)
     for p in thor_pickups:
         for r in thor_receptacles:
-            tasks.append({"pickup": p, "receptacle": r})
+            tasks.append({"scene": "procthor", "pickup": p, "receptacle": r})
 
-    # Thor pickup × Objaverse receptacle
+    # Group B: ProcTHOR scene + Objaverse receptacles (object generalization)
     for p in thor_pickups:
         for r in objaverse_receptacles:
-            tasks.append({"pickup": p, "receptacle": r})
+            tasks.append({"scene": "procthor", "pickup": p, "receptacle": r})
+
+    # Group C: Custom scene + Thor objects (scene generalization)
+    for p in thor_pickups:
+        for r in thor_receptacles:
+            tasks.append({"scene": "custom", "pickup": p, "receptacle": r})
+
+    # Group D: Custom scene + Objaverse receptacles (scene + object generalization)
+    for p in thor_pickups:
+        for r in objaverse_receptacles:
+            tasks.append({"scene": "custom", "pickup": p, "receptacle": r})
 
     config = {
         "task_horizon": 600,
@@ -103,22 +118,26 @@ def generate_default_config():
     }
 
     config_path = BENCHMARK_DIR / "batch_config.json"
+    BENCHMARK_DIR.mkdir(parents=True, exist_ok=True)
     with open(config_path, "w") as f:
         json.dump(config, f, indent=2)
 
-    n_thor = len(thor_pickups) * len(thor_receptacles)
-    n_obj = len(thor_pickups) * len(objaverse_receptacles)
-    total = (n_thor + n_obj) * config["repeats"]
+    # Count by group
+    groups = {}
+    for t in tasks:
+        g = get_group_name(t["scene"], t.get("receptacle", ""))
+        groups[g] = groups.get(g, 0) + 1
+
+    total = len(tasks) * config["repeats"]
     print(f"Generated {config_path}")
-    print(f"  Thor combinations: {n_thor}")
-    print(f"  Objaverse combinations: {n_obj}")
-    print(f"  Repeats per combination: {config['repeats']}")
+    print(f"  Groups:")
+    for g, n in groups.items():
+        print(f"    {g}: {n} combinations × {config['repeats']} repeats = {n * config['repeats']} episodes")
     print(f"  Total episodes: {total}")
     print(f"  Task horizon: {config['task_horizon']} steps")
 
 
 def get_object_name(uid_str: str) -> str:
-    """Get human-readable name for an object uid."""
     if uid_str == "bookcase":
         return "bookcase"
     if uid_str.startswith("objaverse:"):
@@ -127,17 +146,25 @@ def get_object_name(uid_str: str) -> str:
     return OBJECT_NAMES.get(uid_str, uid_str)
 
 
-def get_object_group(uid_str: str) -> str:
-    """Categorize object as 'thor' or 'objaverse'."""
-    if uid_str == "bookcase":
-        return "thor"  # bookcase is our primitive, treat as thor
+def get_object_type(uid_str: str) -> str:
     if uid_str.startswith("objaverse:"):
         return "objaverse"
     return "thor"
 
 
+def get_group_name(scene: str, receptacle: str) -> str:
+    obj_type = get_object_type(receptacle)
+    if scene == "procthor" and obj_type == "thor":
+        return "A: ProcTHOR+Thor (baseline)"
+    elif scene == "procthor" and obj_type == "objaverse":
+        return "B: ProcTHOR+Objaverse (obj gen)"
+    elif scene == "custom" and obj_type == "thor":
+        return "C: Custom+Thor (scene gen)"
+    else:
+        return "D: Custom+Objaverse (both gen)"
+
+
 def load_object(uid_str: str) -> Path:
-    """Load an object, downloading if needed."""
     if uid_str.startswith("objaverse:"):
         hash_uid = uid_str.split(":", 1)[1]
         from molmo_spaces.molmo_spaces_constants import get_resource_manager
@@ -152,25 +179,64 @@ def load_object(uid_str: str) -> Path:
         return install_uid(uid_str)
 
 
-def build_scene():
-    """Build the base scene (furniture + robot, no objects)."""
+def build_procthor_scene(robot_config, pickup_uid, receptacle_uid):
+    """Build ProcTHOR val house 0 scene with swapped objects."""
+    houses = get_procthor_10k_houses(split="val")
+    house_xml = houses["val"][0]["base"]
+    install_scene_with_objects_and_grasps_from_path(house_xml)
+
+    spec = mujoco.MjSpec.from_file(house_xml)
+    robot_path = get_robot_path(robot_config.name) / robot_config.robot_xml_path
+    robot_spec = mujoco.MjSpec.from_file(str(robot_path))
+
+    FrankaRobot.add_robot_to_scene(
+        robot_config, spec, robot_spec,
+        prefix=robot_config.robot_namespace,
+        pos=PROCTHOR_ROBOT_POS,
+        quat=R.from_euler("z", PROCTHOR_ROBOT_YAW, degrees=True).as_quat(scalar_first=True),
+    )
+
+    spec.camera(robot_config.robot_namespace + "gripper/wrist_camera").resolution = [RENDER_WIDTH, RENDER_HEIGHT]
+    spec.body(robot_config.robot_namespace + "fr3_link0").add_camera(
+        pos=PROCTHOR_EXO_POS, quat=PROCTHOR_EXO_QUAT, fovy=PROCTHOR_EXO_FOVY,
+        resolution=[RENDER_WIDTH, RENDER_HEIGHT], name="robot_0/exo_camera_1",
+    )
+
+    # Add pickup object on countertop
+    pickup_xml = load_object(pickup_uid)
+    pickup_spec = mujoco.MjSpec.from_file(str(pickup_xml))
+    pickup_body = pickup_spec.worldbody.bodies[0]
+    if not pickup_body.first_joint():
+        pickup_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
+    pf = spec.worldbody.add_frame(pos=PROCTHOR_PICKUP_POS, quat=THOR_QUAT)
+    pf.attach_body(pickup_body, "pickup_object/", "")
+
+    # Add receptacle
+    recep_xml = load_object(receptacle_uid)
+    recep_spec = mujoco.MjSpec.from_file(str(recep_xml))
+    recep_body = recep_spec.worldbody.bodies[0]
+    if not recep_body.first_joint():
+        recep_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
+    rf = spec.worldbody.add_frame(pos=PROCTHOR_RECEPTACLE_POS, quat=THOR_QUAT)
+    rf.attach_body(recep_body, "place_receptacle/", "")
+
+    return spec, pickup_body.name
+
+
+def build_custom_scene(robot_config, pickup_uid, receptacle_uid):
+    """Build custom scene with primitive desk + bookcase."""
     spec = mujoco.MjSpec.from_file(str(HOUSE_BASE_XML))
 
-    spec.worldbody.add_geom(
-        name="ground", type=mujoco.mjtGeom.mjGEOM_PLANE,
-        size=[5, 5, 0.01], rgba=[0.3, 0.3, 0.3, 1.0],
-        pos=[0, 0, 0], contype=8, conaffinity=15)
+    spec.worldbody.add_geom(name="ground", type=mujoco.mjtGeom.mjGEOM_PLANE,
+        size=[5, 5, 0.01], rgba=[0.3, 0.3, 0.3, 1.0], pos=[0, 0, 0], contype=8, conaffinity=15)
 
     # Desk
     desk = spec.worldbody.add_body(name="desk", pos=[0.75, 0.25, 0.0])
     desk.add_geom(name="desk_top", type=mujoco.mjtGeom.mjGEOM_BOX,
-        size=[0.5, 0.25, 0.015], pos=[0, 0, 0.72],
-        rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
-    for lx, ly, ln in [(-0.45, -0.2, "fl"), (0.45, -0.2, "fr"),
-                        (-0.45, 0.2, "bl"), (0.45, 0.2, "br")]:
+        size=[0.5, 0.25, 0.015], pos=[0, 0, 0.72], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
+    for lx, ly, ln in [(-0.45, -0.2, "fl"), (0.45, -0.2, "fr"), (-0.45, 0.2, "bl"), (0.45, 0.2, "br")]:
         desk.add_geom(name=f"desk_leg_{ln}", type=mujoco.mjtGeom.mjGEOM_BOX,
-            size=[0.02, 0.02, 0.36], pos=[lx, ly, 0.36],
-            rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
+            size=[0.02, 0.02, 0.36], pos=[lx, ly, 0.36], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
 
     # Bookcase
     bc = spec.worldbody.add_body(name="bookcase", pos=[0.55, -0.55, 0.0])
@@ -184,47 +250,6 @@ def build_scene():
     bc.add_geom(name="bc_top", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.3, 0.15, 0.01], pos=[0, 0, 1.6], rgba=bc_c, contype=8, conaffinity=15)
 
     # Robot
-    robot_config = FrankaRobotConfig(base_size=[0.5, 0.5, 0.75])
-    robot_path = get_robot_path(robot_config.name) / robot_config.robot_xml_path
-    robot_spec = mujoco.MjSpec.from_file(str(robot_path))
-    FrankaRobot.add_robot_to_scene(robot_config, spec, robot_spec,
-        prefix=robot_config.robot_namespace, pos=[0, 0], quat=[1, 0, 0, 0])
-
-    spec.camera(robot_config.robot_namespace + "gripper/wrist_camera").resolution = [RENDER_WIDTH, RENDER_HEIGHT]
-    spec.body(robot_config.robot_namespace + "fr3_link0").add_camera(
-        pos=[0.1, 0.57, 0.66], quat=[-0.3633, -0.1241, 0.4263, 0.8191],
-        fovy=71.0, resolution=[RENDER_WIDTH, RENDER_HEIGHT],
-        name="robot_0/exo_camera_1")
-
-    return spec, robot_config
-
-
-def run_single_episode(spec_template, robot_config, policy, pickup_uid, receptacle_uid, prompt, task_horizon, output_dir, episode_id):
-    """Run a single episode. Returns success (bool) and video path."""
-    # Rebuild scene for each episode (fresh state)
-    spec = mujoco.MjSpec.from_file(str(HOUSE_BASE_XML))
-
-    # Rebuild furniture (can't reuse spec — MjSpec isn't copyable)
-    spec.worldbody.add_geom(name="ground", type=mujoco.mjtGeom.mjGEOM_PLANE,
-        size=[5, 5, 0.01], rgba=[0.3, 0.3, 0.3, 1.0], pos=[0, 0, 0], contype=8, conaffinity=15)
-
-    desk = spec.worldbody.add_body(name="desk", pos=[0.75, 0.25, 0.0])
-    desk.add_geom(name="desk_top", type=mujoco.mjtGeom.mjGEOM_BOX,
-        size=[0.5, 0.25, 0.015], pos=[0, 0, 0.72], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
-    for lx, ly, ln in [(-0.45, -0.2, "fl"), (0.45, -0.2, "fr"), (-0.45, 0.2, "bl"), (0.45, 0.2, "br")]:
-        desk.add_geom(name=f"desk_leg_{ln}", type=mujoco.mjtGeom.mjGEOM_BOX,
-            size=[0.02, 0.02, 0.36], pos=[lx, ly, 0.36], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
-
-    bc = spec.worldbody.add_body(name="bookcase", pos=[0.55, -0.55, 0.0])
-    bc_c = [0.7, 0.6, 0.4, 1.0]
-    bc.add_geom(name="bc_back", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.3, 0.01, 0.8], pos=[0, -0.14, 0.8], rgba=bc_c, contype=8, conaffinity=15)
-    bc.add_geom(name="bc_left", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.01, 0.15, 0.8], pos=[-0.29, 0, 0.8], rgba=bc_c, contype=8, conaffinity=15)
-    bc.add_geom(name="bc_right", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.01, 0.15, 0.8], pos=[0.29, 0, 0.8], rgba=bc_c, contype=8, conaffinity=15)
-    bc.add_geom(name="bc_bottom", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.29, 0.15, 0.01], pos=[0, 0, 0.01], rgba=bc_c, contype=8, conaffinity=15)
-    for si, sz in enumerate([0.4, 0.8, 1.2]):
-        bc.add_geom(name=f"bc_shelf_{si}", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.29, 0.15, 0.01], pos=[0, 0, sz], rgba=bc_c, contype=8, conaffinity=15)
-    bc.add_geom(name="bc_top", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.3, 0.15, 0.01], pos=[0, 0, 1.6], rgba=bc_c, contype=8, conaffinity=15)
-
     robot_path = get_robot_path(robot_config.name) / robot_config.robot_xml_path
     robot_spec = mujoco.MjSpec.from_file(str(robot_path))
     FrankaRobot.add_robot_to_scene(robot_config, spec, robot_spec,
@@ -234,24 +259,34 @@ def run_single_episode(spec_template, robot_config, policy, pickup_uid, receptac
         pos=[0.1, 0.57, 0.66], quat=[-0.3633, -0.1241, 0.4263, 0.8191],
         fovy=71.0, resolution=[RENDER_WIDTH, RENDER_HEIGHT], name="robot_0/exo_camera_1")
 
-    # Add pickup object on desk
+    # Pickup on desk
     pickup_xml = load_object(pickup_uid)
     pickup_spec = mujoco.MjSpec.from_file(str(pickup_xml))
     pickup_body = pickup_spec.worldbody.bodies[0]
     if not pickup_body.first_joint():
         pickup_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
-    pf = spec.worldbody.add_frame(pos=[0.55, 0.25, DESK_TOP_Z + 0.04], quat=THOR_QUAT)
+    pf = spec.worldbody.add_frame(pos=[0.55, 0.25, CUSTOM_DESK_TOP_Z + 0.04], quat=THOR_QUAT)
     pf.attach_body(pickup_body, "pickup_object/", "")
 
-    # Add receptacle (if not bookcase)
+    # Receptacle
     if receptacle_uid != "bookcase":
         recep_xml = load_object(receptacle_uid)
         recep_spec = mujoco.MjSpec.from_file(str(recep_xml))
         recep_body = recep_spec.worldbody.bodies[0]
         if not recep_body.first_joint():
             recep_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
-        rf = spec.worldbody.add_frame(pos=[0.65, 0.35, DESK_TOP_Z + 0.08], quat=THOR_QUAT)
+        rf = spec.worldbody.add_frame(pos=[0.65, 0.35, CUSTOM_DESK_TOP_Z + 0.08], quat=THOR_QUAT)
         rf.attach_body(recep_body, "place_receptacle/", "")
+
+    return spec, pickup_body.name
+
+
+def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_uid, prompt, task_horizon, output_dir, episode_id):
+    """Run a single episode. Returns success (bool) and video path."""
+    if scene_type == "procthor":
+        spec, pickup_body_name = build_procthor_scene(robot_config, pickup_uid, receptacle_uid)
+    else:
+        spec, pickup_body_name = build_custom_scene(robot_config, pickup_uid, receptacle_uid)
 
     model = spec.compile()
     data = mujoco.MjData(model)
@@ -266,9 +301,9 @@ def run_single_episode(spec_template, robot_config, policy, pickup_uid, receptac
     scene_option = mujoco.MjvOption()
     scene_option.sitegroup = 0
 
-    # Record initial pickup position for success check
-    pickup_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pickup_object/" + pickup_body.name)
-    initial_pickup_z = data.xpos[pickup_body_id][2] if pickup_body_id >= 0 else 0
+    # Record initial pickup position
+    pickup_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pickup_object/" + pickup_body_name)
+    initial_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
 
     # Rollout
     frames = []
@@ -298,10 +333,10 @@ def run_single_episode(spec_template, robot_config, policy, pickup_uid, receptac
         if (step + 1) % 50 == 0:
             print(f"    Step {step + 1}/{task_horizon}", flush=True)
 
-    # Simple success heuristic: pickup object moved significantly from start
-    final_pickup_z = data.xpos[pickup_body_id][2] if pickup_body_id >= 0 else 0
-    pickup_moved = abs(final_pickup_z - initial_pickup_z) > 0.05
-    # TODO: more sophisticated success criteria (object in receptacle, etc.)
+    # Success heuristic: pickup object displaced significantly from start
+    final_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
+    displacement = np.linalg.norm(final_pickup_pos - initial_pickup_pos)
+    success = displacement > 0.05
 
     # Save video
     video_path = output_dir / f"{episode_id}.mp4"
@@ -310,7 +345,7 @@ def run_single_episode(spec_template, robot_config, policy, pickup_uid, receptac
             str(video_path), codec="libx264", audio=False, logger=None)
 
     renderer.close()
-    return pickup_moved, str(video_path)
+    return success, str(video_path)
 
 
 def generate_report(results, output_dir, config):
@@ -321,22 +356,25 @@ def generate_report(results, output_dir, config):
     csv_path = output_dir / f"results_{timestamp}.csv"
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["pickup", "receptacle", "prompt", "group", "trial", "success", "video_path"])
+        writer.writerow(["scene", "pickup", "receptacle", "prompt", "group", "trial", "success", "video_path"])
         for r in results:
-            writer.writerow([r["pickup"], r["receptacle"], r["prompt"],
+            writer.writerow([r["scene"], r["pickup"], r["receptacle"], r["prompt"],
                             r["group"], r["trial"], r["success"], r["video_path"]])
 
-    # Aggregate stats
-    thor_results = [r for r in results if r["group"] == "thor"]
-    objaverse_results = [r for r in results if r["group"] == "objaverse"]
-
-    thor_success = sum(1 for r in thor_results if r["success"])
-    obj_success = sum(1 for r in objaverse_results if r["success"])
+    # Aggregate by group
+    group_stats = {}
+    for r in results:
+        g = r["group"]
+        if g not in group_stats:
+            group_stats[g] = {"success": 0, "total": 0}
+        group_stats[g]["total"] += 1
+        if r["success"]:
+            group_stats[g]["success"] += 1
 
     # Per-combination stats
     combo_stats = {}
     for r in results:
-        key = (r["pickup"], r["receptacle"])
+        key = (r["scene"], r["pickup"], r["receptacle"])
         if key not in combo_stats:
             combo_stats[key] = {"success": 0, "total": 0, "group": r["group"], "prompt": r["prompt"]}
         combo_stats[key]["total"] += 1
@@ -346,30 +384,49 @@ def generate_report(results, output_dir, config):
     # Markdown report
     md_path = output_dir / f"report_{timestamp}.md"
     with open(md_path, "w") as f:
-        f.write("# Benchmark Report\n\n")
+        f.write("# Benchmark Report: Scene × Object Generalization\n\n")
         f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
         f.write(f"Task horizon: {config['task_horizon']} steps\n")
         f.write(f"Repeats per combination: {config['repeats']}\n\n")
 
-        f.write("## Summary\n\n")
-        f.write("| Group | Success | Total | Rate |\n")
+        f.write("## Summary by Group\n\n")
+        f.write("| Group | Description | Success | Total | Rate |\n")
+        f.write("|-------|-------------|---------|-------|------|\n")
+        for g in sorted(group_stats.keys()):
+            s = group_stats[g]
+            rate = s["success"] / s["total"] * 100 if s["total"] > 0 else 0
+            f.write(f"| {g} | | {s['success']} | {s['total']} | {rate:.1f}% |\n")
+
+        total_s = sum(s["success"] for s in group_stats.values())
+        total_n = sum(s["total"] for s in group_stats.values())
+        f.write(f"| **Total** | | **{total_s}** | **{total_n}** | **{total_s/total_n*100:.1f}%** |\n")
+
+        f.write("\n## Scene Comparison\n\n")
+        f.write("| Scene | Success | Total | Rate |\n")
         f.write("|-------|---------|-------|------|\n")
-        if thor_results:
-            f.write(f"| Thor (training) | {thor_success} | {len(thor_results)} | {thor_success/len(thor_results)*100:.1f}% |\n")
-        if objaverse_results:
-            f.write(f"| Objaverse (novel) | {obj_success} | {len(objaverse_results)} | {obj_success/len(objaverse_results)*100:.1f}% |\n")
-        total_s = thor_success + obj_success
-        total_n = len(results)
-        f.write(f"| **Total** | **{total_s}** | **{total_n}** | **{total_s/total_n*100:.1f}%** |\n")
+        for scene in ["procthor", "custom"]:
+            sr = [r for r in results if r["scene"] == scene]
+            if sr:
+                s = sum(1 for r in sr if r["success"])
+                f.write(f"| {scene} | {s} | {len(sr)} | {s/len(sr)*100:.1f}% |\n")
+
+        f.write("\n## Object Type Comparison\n\n")
+        f.write("| Object Type | Success | Total | Rate |\n")
+        f.write("|-------------|---------|-------|------|\n")
+        for otype in ["thor", "objaverse"]:
+            sr = [r for r in results if get_object_type(r["receptacle"]) == otype]
+            if sr:
+                s = sum(1 for r in sr if r["success"])
+                f.write(f"| {otype} | {s} | {len(sr)} | {s/len(sr)*100:.1f}% |\n")
 
         f.write("\n## Per-Combination Results\n\n")
-        f.write("| Pickup | Receptacle | Group | Success | Trials | Rate |\n")
-        f.write("|--------|-----------|-------|---------|--------|------|\n")
-        for (pickup, receptacle), stats in sorted(combo_stats.items()):
+        f.write("| Scene | Pickup | Receptacle | Group | Success | Rate |\n")
+        f.write("|-------|--------|-----------|-------|---------|------|\n")
+        for (scene, pickup, receptacle), stats in sorted(combo_stats.items()):
             rate = stats["success"] / stats["total"] * 100 if stats["total"] > 0 else 0
             pickup_name = get_object_name(pickup)
             recep_name = get_object_name(receptacle)
-            f.write(f"| {pickup_name} | {recep_name} | {stats['group']} | {stats['success']}/{stats['total']} | {stats['total']} | {rate:.0f}% |\n")
+            f.write(f"| {scene} | {pickup_name} | {recep_name} | {stats['group'][:1]} | {stats['success']}/{stats['total']} | {rate:.0f}% |\n")
 
         f.write(f"\n## Data\n\n")
         f.write(f"- CSV: `{csv_path.name}`\n")
@@ -378,23 +435,24 @@ def generate_report(results, output_dir, config):
     print(f"\nReport: {md_path}")
     print(f"CSV:    {csv_path}")
 
-    # Print summary to console
-    print(f"\n{'='*50}")
+    # Console summary
+    print(f"\n{'='*60}")
     print(f"RESULTS SUMMARY")
-    print(f"{'='*50}")
-    if thor_results:
-        print(f"Thor (training):    {thor_success}/{len(thor_results)} ({thor_success/len(thor_results)*100:.1f}%)")
-    if objaverse_results:
-        print(f"Objaverse (novel):  {obj_success}/{len(objaverse_results)} ({obj_success/len(objaverse_results)*100:.1f}%)")
-    print(f"Total:              {total_s}/{total_n} ({total_s/total_n*100:.1f}%)")
+    print(f"{'='*60}")
+    for g in sorted(group_stats.keys()):
+        s = group_stats[g]
+        rate = s["success"] / s["total"] * 100 if s["total"] > 0 else 0
+        print(f"{g}: {s['success']}/{s['total']} ({rate:.1f}%)")
+    print(f"{'='*60}")
+    print(f"Total: {total_s}/{total_n} ({total_s/total_n*100:.1f}%)")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Batch evaluation with report generation")
+    parser = argparse.ArgumentParser(description="Batch evaluation with scene × object generalization report")
     parser.add_argument("--checkpoint_path", type=str)
     parser.add_argument("--config", type=str, help="Path to batch config JSON")
     parser.add_argument("--generate-config", action="store_true", help="Generate default config and exit")
-    parser.add_argument("--task_horizon_override", type=int, default=None, help="Override task_horizon from config")
+    parser.add_argument("--task_horizon_override", type=int, default=None)
     parser.add_argument("--output_dir", type=str, default=None)
     args = parser.parse_args()
 
@@ -416,29 +474,28 @@ def main():
     print(f"Batch evaluation: {len(tasks)} combinations × {repeats} repeats = {total_episodes} episodes")
     print(f"Task horizon: {task_horizon} steps")
 
-    # Setup output directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = Path(args.output_dir) if args.output_dir else BENCHMARK_DIR / f"batch_results_{timestamp}"
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"Output: {output_dir}")
 
-    # Pre-download all objects
+    # Pre-download objects
     print("\nPre-downloading objects...")
     all_objects = set()
     for task in tasks:
         all_objects.add(task["pickup"])
-        if task["receptacle"] != "bookcase":
+        if task.get("receptacle", "bookcase") != "bookcase":
             all_objects.add(task["receptacle"])
 
     for obj_uid in sorted(all_objects):
         try:
             load_object(obj_uid)
-            print(f"  OK: {obj_uid}")
+            print(f"  OK: {obj_uid}", flush=True)
         except Exception as e:
-            print(f"  FAIL: {obj_uid} — {e}")
+            print(f"  FAIL: {obj_uid} — {e}", flush=True)
 
     # Load policy once
-    print("\nLoading policy (one-time)...")
+    print("\nLoading policy (one-time)...", flush=True)
     from olmo.eval.configure_real_robot import RealRobotVLAPolicy, RealRobotVLAPolicyConfig
 
     policy_config = RealRobotVLAPolicyConfig()
@@ -451,46 +508,42 @@ def main():
             self.policy_config = pc
 
     policy = RealRobotVLAPolicy(config=MockConfig(policy_config), task_type="manipulation")
-    print("Policy loaded.\n")
+    robot_config = FrankaRobotConfig(base_size=[0.5, 0.5, 0.75])
+    print("Policy loaded.\n", flush=True)
 
-    # Build template scene (for robot_config)
-    _, robot_config = build_scene()
-
-    # Run all episodes
+    # Run episodes
     results = []
     episode_num = 0
     for task_idx, task in enumerate(tasks):
+        scene_type = task.get("scene", "custom")
         pickup = task["pickup"]
-        receptacle = task["receptacle"]
+        receptacle = task.get("receptacle", "bookcase")
 
         pickup_name = get_object_name(pickup)
         receptacle_name = get_object_name(receptacle)
-        prompt = task.get("prompt") or (
-            f"pick up the {pickup_name} and place it in the {receptacle_name}"
-        )
-
-        # Determine group based on receptacle (since pickups are all Thor)
-        group = "objaverse" if get_object_group(receptacle) == "objaverse" else "thor"
+        prompt = task.get("prompt") or f"pick up the {pickup_name} and place it in the {receptacle_name}"
+        group = get_group_name(scene_type, receptacle)
 
         for trial in range(repeats):
             episode_num += 1
-            episode_id = f"ep{episode_num:03d}_{pickup_name}_{receptacle_name}_t{trial}"
-            print(f"[{episode_num}/{total_episodes}] {pickup_name} → {receptacle_name} (trial {trial+1}/{repeats})")
+            episode_id = f"ep{episode_num:03d}_{scene_type}_{pickup_name}_{receptacle_name}_t{trial}"
+            print(f"[{episode_num}/{total_episodes}] [{scene_type}] {pickup_name} → {receptacle_name} (trial {trial+1}/{repeats})", flush=True)
 
             try:
                 success, video_path = run_single_episode(
-                    None, robot_config, policy,
+                    robot_config, policy, scene_type,
                     pickup, receptacle, prompt,
                     task_horizon, output_dir, episode_id,
                 )
                 status = "PASS" if success else "FAIL"
-                print(f"  → {status}")
+                print(f"  → {status}", flush=True)
             except Exception as e:
                 success = False
                 video_path = ""
-                print(f"  → ERROR: {e}")
+                print(f"  → ERROR: {e}", flush=True)
 
             results.append({
+                "scene": scene_type,
                 "pickup": pickup,
                 "receptacle": receptacle,
                 "prompt": prompt,
@@ -500,14 +553,13 @@ def main():
                 "video_path": video_path,
             })
 
-            # Save partial results after each episode (resumable on crash)
+            # Save partial results
             with open(output_dir / "results_partial.json", "w") as f:
                 json.dump({"completed": episode_num, "total": total_episodes, "results": results}, f, indent=2)
 
-    # Generate final report
+    # Final report
     generate_report(results, output_dir, config)
 
-    # Save final results (replace partial)
     with open(output_dir / "results.json", "w") as f:
         json.dump(results, f, indent=2)
     partial = output_dir / "results_partial.json"

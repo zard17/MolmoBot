@@ -3,124 +3,154 @@
   "repeats": 3,
   "tasks": [
     {
+      "scene": "procthor",
+      "pickup": "SaltShaker_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "scene": "procthor",
       "pickup": "Mug_1",
       "receptacle": "Bowl_3"
     },
     {
-      "pickup": "Mug_1",
-      "receptacle": "Cup_5"
-    },
-    {
-      "pickup": "Mug_1",
-      "receptacle": "bookcase"
-    },
-    {
-      "pickup": "Apple_1",
-      "receptacle": "Bowl_3"
-    },
-    {
-      "pickup": "Apple_1",
-      "receptacle": "Cup_5"
-    },
-    {
-      "pickup": "Apple_1",
-      "receptacle": "bookcase"
-    },
-    {
+      "scene": "procthor",
       "pickup": "Egg_1",
       "receptacle": "Bowl_3"
     },
     {
-      "pickup": "Egg_1",
-      "receptacle": "Cup_5"
-    },
-    {
-      "pickup": "Egg_1",
-      "receptacle": "bookcase"
-    },
-    {
+      "scene": "procthor",
       "pickup": "Candle_1",
       "receptacle": "Bowl_3"
     },
     {
-      "pickup": "Candle_1",
-      "receptacle": "Cup_5"
-    },
-    {
-      "pickup": "Candle_1",
-      "receptacle": "bookcase"
-    },
-    {
-      "pickup": "Tissue_Box_1",
+      "scene": "procthor",
+      "pickup": "Tomato_1",
       "receptacle": "Bowl_3"
     },
     {
-      "pickup": "Tissue_Box_1",
-      "receptacle": "Cup_5"
+      "scene": "procthor",
+      "pickup": "SaltShaker_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
-      "pickup": "Tissue_Box_1",
-      "receptacle": "bookcase"
+      "scene": "procthor",
+      "pickup": "SaltShaker_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
     },
     {
+      "scene": "procthor",
       "pickup": "Mug_1",
       "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
+      "scene": "procthor",
       "pickup": "Mug_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
     },
     {
+      "scene": "procthor",
+      "pickup": "Egg_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Egg_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Candle_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Candle_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Tomato_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Tomato_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "scene": "custom",
+      "pickup": "SaltShaker_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "scene": "custom",
       "pickup": "Mug_1",
-      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
+      "receptacle": "Bowl_3"
     },
     {
-      "pickup": "Apple_1",
+      "scene": "custom",
+      "pickup": "Egg_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "scene": "custom",
+      "pickup": "Candle_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "scene": "custom",
+      "pickup": "Tomato_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "scene": "custom",
+      "pickup": "SaltShaker_1",
       "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
-      "pickup": "Apple_1",
+      "scene": "custom",
+      "pickup": "SaltShaker_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
     },
     {
-      "pickup": "Apple_1",
-      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
+      "scene": "custom",
+      "pickup": "Mug_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
+      "scene": "custom",
+      "pickup": "Mug_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "scene": "custom",
       "pickup": "Egg_1",
       "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
+      "scene": "custom",
       "pickup": "Egg_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
     },
     {
-      "pickup": "Egg_1",
-      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
-    },
-    {
+      "scene": "custom",
       "pickup": "Candle_1",
       "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
+      "scene": "custom",
       "pickup": "Candle_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
     },
     {
-      "pickup": "Candle_1",
-      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
-    },
-    {
-      "pickup": "Tissue_Box_1",
+      "scene": "custom",
+      "pickup": "Tomato_1",
       "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
-      "pickup": "Tissue_Box_1",
+      "scene": "custom",
+      "pickup": "Tomato_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
-    },
-    {
-      "pickup": "Tissue_Box_1",
-      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
     }
   ]
 }
