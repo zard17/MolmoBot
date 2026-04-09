@@ -497,12 +497,19 @@ def main():
                 "video_path": video_path,
             })
 
-    # Generate report
+            # Save partial results after each episode (resumable on crash)
+            with open(output_dir / "results_partial.json", "w") as f:
+                json.dump({"completed": episode_num, "total": total_episodes, "results": results}, f, indent=2)
+
+    # Generate final report
     generate_report(results, output_dir, config)
 
-    # Save raw results
+    # Save final results (replace partial)
     with open(output_dir / "results.json", "w") as f:
         json.dump(results, f, indent=2)
+    partial = output_dir / "results_partial.json"
+    if partial.exists():
+        partial.unlink()
 
 
 if __name__ == "__main__":
