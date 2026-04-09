@@ -1,55 +1,55 @@
 # Franka Pick-and-Place Benchmark
 
-Custom scene benchmark with a desk, bookcase, and Franka robot.
+책상, 책장, Franka 로봇으로 구성된 커스텀 씬 벤치마크.
 
-## Tasks
+## 태스크
 
-| Episode | Task | Pickup | Target |
-|---------|------|--------|--------|
-| 0 | Tissue box → bookcase | Tissue_Box_1 on desk | Bookcase shelf |
-| 1 | Pencil → cup | Pencil_1 on desk | Cup_5 on desk |
+| 에피소드 | 태스크 | 집는 물체 | 목표 위치 |
+|----------|--------|-----------|-----------|
+| 0 | 티슈박스 -> 책장 | 책상 위 Tissue_Box_1 | 책장 선반 |
+| 1 | 연필 -> 컵 | 책상 위 Pencil_1 | 책상 위 Cup_5 |
 
-## Setup
+## 설치
 
 ```bash
-# Clone and install (from MolmoBot/ directory)
+# 클론 및 설치 (MolmoBot/ 디렉토리에서)
 pip install -e .
 
-# Download checkpoint
+# 체크포인트 다운로드
 python -c "from huggingface_hub import snapshot_download; snapshot_download('allenai/MolmoBot-DROID')"
 ```
 
-## Quick Start: Run with Real-Time Viewer
+## 빠른 시작: 실시간 뷰어로 실행
 
 ```bash
-# Linux (X11/EGL) — shows interactive MuJoCo viewer
+# Linux (X11/EGL) — MuJoCo 뷰어 창이 뜸
 MUJOCO_GL=egl python scripts/run_benchmark_with_viewer.py \
   --checkpoint_path ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/
 
-# macOS — requires mjpython for viewer
+# macOS — 뷰어 사용시 mjpython 필요
 mjpython scripts/run_benchmark_with_viewer.py \
   --checkpoint_path ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/
 
-# Without viewer (saves video only)
+# 뷰어 없이 (영상만 저장)
 python scripts/run_benchmark_with_viewer.py \
   --checkpoint_path ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/ \
   --no-viewer
 ```
 
-Options:
-- `--task_horizon 200` — max steps per episode (default: 200)
-- `--episode 0` — which task to run: 0=tissue_box, 1=pencil (default: 0)
-- `--output_dir <path>` — where to save video
+옵션:
+- `--task_horizon 200` — 에피소드당 최대 스텝 수 (기본값: 200)
+- `--episode 0` — 실행할 태스크: 0=티슈박스, 1=연필 (기본값: 0)
+- `--output_dir <path>` — 영상 저장 경로
 
-## Full Evaluation (run_eval.py)
+## 전체 평가 (run_eval.py)
 
-Runs both episodes and reports success rate.
+두 에피소드 모두 실행하고 성공률을 보고함.
 
 ```bash
-# Generate benchmark JSON + custom scene
+# 벤치마크 JSON + 커스텀 씬 생성
 python scripts/create_book_pencil_benchmark.py
 
-# Run evaluation
+# 평가 실행
 python launch_scripts/run_eval.py \
   --checkpoint_path ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/ \
   --benchmark_path benchmarks/franka_book_pencil_pick_place \
@@ -57,28 +57,28 @@ python launch_scripts/run_eval.py \
   --task_horizon 600
 ```
 
-Results are saved to `eval_output/FrankaCustomSceneEvalConfig/<timestamp>/house_0/`:
-- `episode_*_exo_camera_1_*.mp4` — exocentric camera video
-- `episode_*_wrist_camera_*.mp4` — wrist camera video
-- `trajectories_*.h5` — trajectory data
+결과는 `eval_output/FrankaCustomSceneEvalConfig/<timestamp>/house_0/`에 저장됨:
+- `episode_*_exo_camera_1_*.mp4` — 외부 카메라 영상
+- `episode_*_wrist_camera_*.mp4` — 손목 카메라 영상
+- `trajectories_*.h5` — 궤적 데이터
 
-## GPU Setup (for faster inference)
+## GPU 설정 (빠른 추론)
 
-### Fix GPU OOM on 24GB cards
+### 24GB GPU에서 OOM 해결
 
-If you hit OOM errors, edit `olmo/models/molmobot/inference_wrapper.py` and remove the `to_empty` line:
+OOM 에러 발생 시, `olmo/models/molmobot/inference_wrapper.py`에서 `to_empty` 라인을 제거:
 
 ```python
-# Before (lines 128-136):
+# 수정 전 (128-136줄):
 with torch.device("meta"):
     self.model = self.model_config.build_model()
 if self.use_bfloat16:
     self.model.to(torch.bfloat16)
-self.model.to_empty(device=self.device)   # <-- REMOVE this line
+self.model.to_empty(device=self.device)   # <-- 이 줄 삭제
 load_model_state(self.checkpoint_path, self.model)
 self.model.to(self.device)
 
-# After:
+# 수정 후:
 with torch.device("meta"):
     self.model = self.model_config.build_model()
 if self.use_bfloat16:
@@ -87,17 +87,17 @@ load_model_state(self.checkpoint_path, self.model)
 self.model.to(self.device)
 ```
 
-This avoids allocating the model twice in GPU memory (empty tensors + loaded weights).
+모델을 GPU 메모리에 두 번 할당하는 것(빈 텐서 + 로드된 가중치)을 방지함.
 
-### GPU evaluation
+### GPU 평가
 
 ```bash
-# With viewer
+# 뷰어와 함께
 python scripts/run_benchmark_with_viewer.py \
   --checkpoint_path <path> \
   --task_horizon 600
 
-# Full eval (both episodes)
+# 전체 평가 (두 에피소드 모두)
 python launch_scripts/run_eval.py \
   --checkpoint_path <path> \
   --benchmark_path benchmarks/franka_book_pencil_pick_place \
@@ -105,30 +105,30 @@ python launch_scripts/run_eval.py \
   --task_horizon 600
 ```
 
-bfloat16 is enabled by default in `SynthManipMolmoInferenceWrapper`. No extra flags needed.
+bfloat16은 `SynthManipMolmoInferenceWrapper`에서 기본으로 활성화됨. 별도 플래그 불필요.
 
-## View Scene (no policy)
+## 씬 확인 (정책 없이)
 
 ```bash
-# Render preview images
+# 미리보기 이미지 렌더링
 python scripts/view_benchmark_scene.py --preview
 
-# Interactive viewer (Linux)
+# 대화형 뷰어 (Linux)
 python scripts/view_benchmark_scene.py
 
-# Interactive viewer (macOS)
-python scripts/view_benchmark_scene.py  # uses mujoco.viewer.launch (blocking)
+# 대화형 뷰어 (macOS)
+python scripts/view_benchmark_scene.py  # mujoco.viewer.launch 사용 (블로킹)
 ```
 
-## Files
+## 파일 구성
 
-| File | Description |
-|------|-------------|
-| `scripts/create_book_pencil_benchmark.py` | Generates benchmark JSON + custom scene XML |
-| `scripts/view_benchmark_scene.py` | Scene preview and interactive viewer |
-| `scripts/run_benchmark_with_viewer.py` | Eval with real-time MuJoCo viewer |
-| `benchmarks/.../benchmark.json` | Episode specifications |
-| `benchmarks/.../custom_scene.xml` | Scene XML (ground + desk + bookcase) |
-| `benchmarks/.../desk.xml` | Desk primitive XML |
-| `benchmarks/.../bookcase.xml` | Bookcase primitive XML |
-| `olmo/eval/configure_molmo_spaces.py` | `FrankaCustomSceneEvalConfig` eval config |
+| 파일 | 설명 |
+|------|------|
+| `scripts/create_book_pencil_benchmark.py` | 벤치마크 JSON + 커스텀 씬 XML 생성 |
+| `scripts/view_benchmark_scene.py` | 씬 미리보기 및 대화형 뷰어 |
+| `scripts/run_benchmark_with_viewer.py` | 실시간 MuJoCo 뷰어와 함께 평가 실행 |
+| `benchmarks/.../benchmark.json` | 에피소드 명세 |
+| `benchmarks/.../custom_scene.xml` | 씬 XML (바닥 + 책상 + 책장) |
+| `benchmarks/.../desk.xml` | 책상 프리미티브 XML |
+| `benchmarks/.../bookcase.xml` | 책장 프리미티브 XML |
+| `olmo/eval/configure_molmo_spaces.py` | `FrankaCustomSceneEvalConfig` 평가 설정 |
