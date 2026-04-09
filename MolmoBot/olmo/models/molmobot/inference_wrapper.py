@@ -128,7 +128,7 @@ class SynthManipMolmoInferenceWrapper:
         log.info(f"Building model...")
         with torch.device("meta"):
             self.model = self.model_config.build_model()
-        if self.use_bfloat16:
+        if self.use_bfloat16 and self.device.type == "cuda":
             self.model.to(torch.bfloat16)
 
         self.model.to_empty(device=self.device)
