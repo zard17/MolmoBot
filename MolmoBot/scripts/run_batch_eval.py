@@ -336,7 +336,7 @@ def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_
     # Success heuristic: pickup object displaced significantly from start
     final_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
     displacement = np.linalg.norm(final_pickup_pos - initial_pickup_pos)
-    success = displacement > 0.05
+    success = bool(displacement > 0.05)
 
     # Save video
     video_path = output_dir / f"{episode_id}.mp4"
