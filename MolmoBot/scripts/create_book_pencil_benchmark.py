@@ -96,7 +96,7 @@ def build_custom_scene_xml() -> None:
 
     # Bake furniture into scene XML (not added_objects, which requires ObjectMeta).
     # Desk
-    desk_body = spec.worldbody.add_body(name="desk", pos=[0.55, 0.2, 0.0])
+    desk_body = spec.worldbody.add_body(name="desk", pos=[0.75, 0.25, 0.0])
     desk_body.add_geom(name="desk_top", type=mujoco.mjtGeom.mjGEOM_BOX,
         size=[0.5, 0.25, 0.015], pos=[0, 0, 0.72], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
     for lx, ly, ln in [(-0.45, -0.2, "fl"), (0.45, -0.2, "fr"), (-0.45, 0.2, "bl"), (0.45, 0.2, "br")]:
@@ -104,7 +104,7 @@ def build_custom_scene_xml() -> None:
             size=[0.02, 0.02, 0.36], pos=[lx, ly, 0.36], rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
 
     # Bookcase
-    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.5, -0.3, 0.0])
+    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.55, -0.55, 0.0])
     bc_c = [0.7, 0.6, 0.4, 1.0]
     bc_body.add_geom(name="bc_back", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.3, 0.01, 0.8], pos=[0, -0.14, 0.8], rgba=bc_c, contype=8, conaffinity=15)
     bc_body.add_geom(name="bc_left", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.01, 0.15, 0.8], pos=[-0.29, 0, 0.8], rgba=bc_c, contype=8, conaffinity=15)
@@ -152,9 +152,9 @@ def make_pose(x, y, z, quat=None):
 def create_box_to_bookcase_episode(scene_xml: str) -> dict:
     """Pick Tissue_Box_1 from desk → place in bookcase shelf."""
     uid = "Tissue_Box_1"
-    obj_pose = make_pose(0.5, 0.2, DESK_SURFACE_Z + 0.04)
-    obj_goal = make_pose(0.5, 0.2, DESK_SURFACE_Z + 0.09)
-    shelf_pose = [0.5, -0.3, 0.5, 1.0, 0.0, 0.0, 0.0]
+    obj_pose = make_pose(0.55, 0.25, DESK_SURFACE_Z + 0.04)
+    obj_goal = make_pose(0.55, 0.25, DESK_SURFACE_Z + 0.09)
+    shelf_pose = [0.55, -0.55, 0.5, 1.0, 0.0, 0.0, 0.0]
 
     return {
         "source": None,
@@ -201,9 +201,9 @@ def create_pencil_to_cup_episode(scene_xml: str) -> dict:
     pencil_uid = "Pencil_1"
     cup_uid = "Cup_5"
 
-    pencil_pose = make_pose(0.45, 0.1, DESK_SURFACE_Z + 0.02)
-    pencil_goal = make_pose(0.45, 0.1, DESK_SURFACE_Z + 0.07)
-    cup_pose = make_pose(0.6, 0.3, DESK_SURFACE_Z + 0.08)
+    pencil_pose = make_pose(0.5, 0.15, DESK_SURFACE_Z + 0.02)
+    pencil_goal = make_pose(0.5, 0.15, DESK_SURFACE_Z + 0.07)
+    cup_pose = make_pose(0.65, 0.35, DESK_SURFACE_Z + 0.08)
 
     return {
         "source": None,

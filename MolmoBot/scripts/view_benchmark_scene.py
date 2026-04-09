@@ -79,9 +79,10 @@ def build_scene():
     # Thor furniture assets have oversized collision boxes that cause penetration.
     # Build desk and bookcase from MuJoCo box geoms instead.
 
-    # Desk: 1.0m wide, 0.5m deep, 0.02m thick top, 0.72m tall
-    # Moved closer to robot and next to bookcase
-    desk_body = spec.worldbody.add_body(name="desk", pos=[0.55, 0.2, 0.0])
+    # Desk: 1.0m wide, 0.5m deep, 0.72m tall
+    # Robot base is 0.5x0.5m → extends to x=0.25. Desk nearest leg at x-0.45,
+    # so desk center x must be >= 0.25 + 0.45 + margin = 0.75
+    desk_body = spec.worldbody.add_body(name="desk", pos=[0.75, 0.25, 0.0])
     # Table top
     desk_body.add_geom(
         name="desk_top", type=mujoco.mjtGeom.mjGEOM_BOX,
@@ -96,9 +97,9 @@ def build_scene():
             rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15,
         )
 
-    # Bookcase: 0.6m wide, 0.3m deep, 1.6m tall, open front facing +Y (toward robot)
-    # Moved closer, next to desk
-    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.5, -0.3, 0.0])
+    # Bookcase: 0.6m wide, 0.3m deep, open front facing +Y
+    # Back at y=-0.14, sides at x=±0.29. Keep clear of robot base (y=-0.25).
+    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.55, -0.55, 0.0])
     bc_color = [0.7, 0.6, 0.4, 1.0]
     # Back panel
     bc_body.add_geom(
@@ -157,17 +158,17 @@ def build_scene():
     # Desk at [0.55, 0.2], top geom z=0.72, half-thickness=0.015 → surface at 0.735
     desk_top_z = 0.75  # surface + margin
 
-    # Objects within desk bounds: center [0.55,0.2], half-size [0.5,0.25]
-    # → x range [0.05..1.05], y range [-0.05..0.45]
+    # Objects on desk: center [0.75,0.25], half-size [0.5,0.25]
+    # → x range [0.25..1.25], y range [0.0..0.5]
 
-    # Tissue box on desk center
-    attach_dynamic(spec, "Tissue_Box_1", pos=[0.5, 0.2, desk_top_z + 0.04], prefix="pickup_object/")
+    # Tissue box on desk (near robot)
+    attach_dynamic(spec, "Tissue_Box_1", pos=[0.55, 0.25, desk_top_z + 0.04], prefix="pickup_object/")
 
-    # Pencil on desk (left side)
-    attach_dynamic(spec, "Pencil_1", pos=[0.45, 0.1, desk_top_z + 0.02], prefix="pickup_pencil/")
+    # Pencil on desk
+    attach_dynamic(spec, "Pencil_1", pos=[0.5, 0.15, desk_top_z + 0.02], prefix="pickup_pencil/")
 
-    # Cup on desk (right side)
-    attach_dynamic(spec, "Cup_5", pos=[0.6, 0.3, desk_top_z + 0.08], prefix="place_receptacle/")
+    # Cup on desk
+    attach_dynamic(spec, "Cup_5", pos=[0.65, 0.35, desk_top_z + 0.08], prefix="place_receptacle/")
 
     # Compile
     model = spec.compile()

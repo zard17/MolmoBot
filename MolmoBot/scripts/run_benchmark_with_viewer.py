@@ -56,15 +56,15 @@ TASK_SPECS = [
         "task_id": "tissue_box_to_bookcase",
         "prompt": "pick up the tissue box and place it in the bookcase",
         "objects": [
-            ("Tissue_Box_1", [0.5, 0.2, 0.79], "pickup_object/"),
+            ("Tissue_Box_1", [0.55, 0.25, 0.79], "pickup_object/"),
         ],
     },
     {
         "task_id": "pencil_to_cup",
         "prompt": "pick up the pencil and put it in the cup",
         "objects": [
-            ("Pencil_1", [0.45, 0.1, 0.77], "pickup_pencil/"),
-            ("Cup_5", [0.6, 0.3, 0.83], "place_receptacle/"),
+            ("Pencil_1", [0.5, 0.15, 0.77], "pickup_pencil/"),
+            ("Cup_5", [0.65, 0.35, 0.83], "place_receptacle/"),
         ],
     },
 ]
@@ -81,7 +81,7 @@ def build_scene():
     )
 
     # Desk
-    desk_body = spec.worldbody.add_body(name="desk", pos=[0.55, 0.2, 0.0])
+    desk_body = spec.worldbody.add_body(name="desk", pos=[0.75, 0.25, 0.0])
     desk_body.add_geom(name="desk_top", type=mujoco.mjtGeom.mjGEOM_BOX,
         size=[0.5, 0.25, 0.015], pos=[0, 0, 0.72],
         rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
@@ -91,7 +91,7 @@ def build_scene():
             rgba=[0.55, 0.35, 0.2, 1.0], contype=8, conaffinity=15)
 
     # Bookcase
-    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.5, -0.3, 0.0])
+    bc_body = spec.worldbody.add_body(name="bookcase", pos=[0.55, -0.55, 0.0])
     bc_c = [0.7, 0.6, 0.4, 1.0]
     bc_body.add_geom(name="bc_back", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.3, 0.01, 0.8], pos=[0, -0.14, 0.8], rgba=bc_c, contype=8, conaffinity=15)
     bc_body.add_geom(name="bc_left", type=mujoco.mjtGeom.mjGEOM_BOX, size=[0.01, 0.15, 0.8], pos=[-0.29, 0, 0.8], rgba=bc_c, contype=8, conaffinity=15)
