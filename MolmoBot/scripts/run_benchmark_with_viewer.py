@@ -95,17 +95,33 @@ def load_object(uid_str: str) -> Path:
         return install_uid(uid_str)
 
 
+# Curated Objaverse objects (novel, not in Thor training set)
+# These are downloaded on first use via the resource manager.
+OBJAVERSE_OBJECTS = {
+    "45bb173c0384450487421b687bf3bf5b": "rustic shallow bowl [receptacle]",
+    "d6fcfa410dfe402ba412cc7abe756cfd": "gray bowl [receptacle]",
+    "cf937fff1d494219962d2031aec345aa": "pink seashell bowl [receptacle]",
+    "07ad36c0658e4eafa91f0137e49fad58": "round gray bowl [receptacle]",
+    "a37dbcc09514468ebcbed44cab5452f0": "rustic bowl with yellow interior [receptacle]",
+}
+
+
 def list_objects():
     """Print available objects."""
-    print("Available Thor objects:")
+    print("=== Thor objects (training distribution) ===")
     print(f"  {'UID':25s} {'Name':15s}")
     print(f"  {'-'*25} {'-'*15}")
     for uid, name in sorted(AVAILABLE_OBJECTS.items()):
         print(f"  {uid:25s} {name:15s}")
     print()
-    print("Objaverse objects (use objaverse:<hash> format):")
-    print("  Example: objaverse:45bb173c0384450487421b687bf3bf5b (rustic bowl)")
-    print("  These are downloaded on first use.")
+    print("=== Objaverse objects (novel, use objaverse:<hash>) ===")
+    print(f"  {'Hash':40s} {'Description'}")
+    print(f"  {'-'*40} {'-'*40}")
+    for hash_uid, desc in OBJAVERSE_OBJECTS.items():
+        print(f"  {hash_uid:40s} {desc}")
+    print()
+    print("You can also use any Objaverse hash: objaverse:<hash>")
+    print("Objects are downloaded on first use.")
 
 
 def build_scene():
