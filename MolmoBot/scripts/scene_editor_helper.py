@@ -81,12 +81,12 @@ def export_scene():
     bc.add_geom(name="bc_top", type=mujoco.mjtGeom.mjGEOM_BOX,
         size=[0.3, 0.15, 0.01], pos=[0, 0, 1.6], rgba=bc_c, contype=8, conaffinity=15)
 
-    # Robot
-    robot_config = FrankaRobotConfig(base_size=[0.5, 0.5, 0.75])
-    robot_path = get_robot_path(robot_config.name) / robot_config.robot_xml_path
-    robot_spec = mujoco.MjSpec.from_file(str(robot_path))
-    FrankaRobot.add_robot_to_scene(robot_config, spec, robot_spec,
-        prefix=robot_config.robot_namespace, pos=[0, 0], quat=[1, 0, 0, 0])
+    # Robot placeholder — use a simple box instead of full robot mesh
+    # (mjedit can't resolve robot mesh file paths)
+    robot_body = spec.worldbody.add_body(name="robot_base", pos=[0, 0, 0.375])
+    robot_body.add_geom(name="robot_base_geom", type=mujoco.mjtGeom.mjGEOM_BOX,
+        size=[0.25, 0.25, 0.375], rgba=[0.2, 0.2, 0.2, 0.5],
+        contype=0, conaffinity=0)  # no collision, just visual
 
     # Dynamic objects from benchmark.json
     if BENCHMARK_JSON.exists():
@@ -94,8 +94,9 @@ def export_scene():
             episodes = json.load(f)
 
         # Collect all unique objects across episodes
-        added = {}
-        poses = {}
+        added = {}  # obj_name → rel_path
+        poses = {}  # obj_name → pose
+        obj_name_to_editor_prefix = {}  # obj_name → editor prefix (for import mapping)
         for ep in episodes:
             sm = ep.get("scene_modifications", {})
             for name, rel_path in sm.get("added_objects", {}).items():
@@ -105,31 +106,41 @@ def export_scene():
                 if name not in poses:
                     poses[name] = pose
 
-        for obj_name, rel_path in added.items():
-            xml_path = ASSETS_DIR / rel_path
-            if not xml_path.exists():
-                # Try install_uid for Thor assets
-                uid = obj_name.split("/")[-1]
-                try:
-                    xml_path = install_uid(uid)
-                except Exception:
-                    print(f"  WARNING: Could not find asset for {obj_name}, skipping")
-                    continue
+        # Use simplified box placeholders for objects (mjedit can't resolve
+        # Thor mesh file paths). Color-coded for identification.
+        obj_colors = [
+            [0.8, 0.2, 0.2, 0.8],  # red
+            [0.2, 0.8, 0.2, 0.8],  # green
+            [0.2, 0.2, 0.8, 0.8],  # blue
+            [0.8, 0.8, 0.2, 0.8],  # yellow
+        ]
+        # Approximate sizes for known objects
+        obj_sizes = {
+            "Tissue_Box_1": [0.10, 0.05, 0.075],
+            "Pencil_1": [0.005, 0.09, 0.005],
+            "Cup_5": [0.04, 0.04, 0.07],
+        }
 
-            obj_spec = mujoco.MjSpec.from_file(str(xml_path))
-            body = obj_spec.worldbody.bodies[0]
-            if not body.first_joint():
-                body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
-
+        for i, (obj_name, rel_path) in enumerate(added.items()):
+            uid = obj_name.split("/")[-1]
             pose = poses.get(obj_name, [0, 0, 1, 1, 0, 0, 0])
             pos = pose[:3]
             quat = pose[3:7]
+            size = obj_sizes.get(uid, [0.05, 0.05, 0.05])
+            color = obj_colors[i % len(obj_colors)]
 
-            frame = spec.worldbody.add_frame(pos=pos, quat=quat)
-            parts = obj_name.split("/")
-            prefix = "/".join(parts[:-1]) + "/"
-            frame.attach_body(body, prefix, "")
-            print(f"  Added {obj_name} at pos={pos}")
+            body = spec.worldbody.add_body(name=uid, pos=pos, quat=quat)
+            body.add_geom(name=f"{uid}_geom", type=mujoco.mjtGeom.mjGEOM_BOX,
+                size=size, rgba=color, contype=0, conaffinity=0)
+
+            obj_name_to_editor_prefix[obj_name] = uid
+            print(f"  Added {obj_name} as '{uid}' (box placeholder) at pos={pos}")
+
+        # Save mapping for import
+        mapping_path = BENCHMARK_DIR / "editor_name_mapping.json"
+        with open(mapping_path, "w") as f:
+            json.dump(obj_name_to_editor_prefix, f, indent=2)
+        print(f"  Saved name mapping to {mapping_path}")
     else:
         print("  No benchmark.json found, exporting scene without objects")
 
@@ -181,9 +192,15 @@ def import_scene():
                 if name:
                     body_positions[name] = {"pos": pos, "quat": quat}
 
-    # body_positions already populated from XML parsing above
+    # Load name mapping from export
+    mapping_path = BENCHMARK_DIR / "editor_name_mapping.json"
+    editor_to_benchmark = {}  # editor_body_name → benchmark obj_name
+    if mapping_path.exists():
+        with open(mapping_path) as f:
+            benchmark_to_editor = json.load(f)
+        editor_to_benchmark = {v: k for k, v in benchmark_to_editor.items()}
 
-    # Print furniture positions (user must update scripts manually)
+    # Print furniture positions
     print("\n=== Furniture positions (update in create_book_pencil_benchmark.py + view scripts) ===")
     for name in ["desk", "bookcase"]:
         if name in body_positions:
@@ -204,39 +221,44 @@ def import_scene():
         sm = ep.get("scene_modifications", {})
         task = ep.get("task", {})
 
-        # Update object_poses
         for obj_name in list(sm.get("object_poses", {}).keys()):
-            # Find matching body — the prefix is stripped during attach
-            # e.g. "pickup_object/Tissue_Box_1" → body name is "Tissue_Box_1"
-            # but attached with prefix "pickup_object/" so full name is "pickup_object/Tissue_Box_1"
-            # Check various name patterns
-            for body_name, bp in body_positions.items():
-                if body_name == obj_name or body_name.endswith("/" + obj_name.split("/")[-1]):
-                    new_pose = bp["pos"] + bp["quat"]
-                    old_pose = sm["object_poses"][obj_name]
-                    if new_pose != old_pose:
-                        print(f"  {obj_name}:")
-                        print(f"    old: pos={[round(x, 3) for x in old_pose[:3]]}")
-                        print(f"    new: pos={[round(x, 3) for x in new_pose[:3]]}")
-                        sm["object_poses"][obj_name] = new_pose
-                        changed = True
+            # Find matching body via name mapping or direct match
+            editor_name = benchmark_to_editor.get(obj_name) if mapping_path.exists() else None
+            matched_pos = None
 
-                        # Also update task fields that reference this object
-                        if task.get("pickup_obj_name") == obj_name:
-                            task["pickup_obj_start_pose"] = new_pose
-                            goal = list(new_pose)
-                            goal[2] += 0.05  # goal is 5cm above start
-                            task["pickup_obj_goal_pose"] = goal
-                        if task.get("place_receptacle_name") == obj_name:
-                            task["place_receptacle_start_pose"] = new_pose
+            for body_name, bp in body_positions.items():
+                if (editor_name and body_name == editor_name) or \
+                   body_name == obj_name or \
+                   body_name.endswith("/" + obj_name.split("/")[-1]):
+                    matched_pos = bp
                     break
+
+            if matched_pos is None:
+                continue
+
+            new_pose = matched_pos["pos"] + matched_pos["quat"]
+            old_pose = sm["object_poses"][obj_name]
+            if new_pose != old_pose:
+                print(f"  {obj_name}:")
+                print(f"    old: pos={[round(x, 3) for x in old_pose[:3]]}")
+                print(f"    new: pos={[round(x, 3) for x in new_pose[:3]]}")
+                sm["object_poses"][obj_name] = new_pose
+                changed = True
+
+                if task.get("pickup_obj_name") == obj_name:
+                    task["pickup_obj_start_pose"] = new_pose
+                    goal = list(new_pose)
+                    goal[2] += 0.05
+                    task["pickup_obj_goal_pose"] = goal
+                if task.get("place_receptacle_name") == obj_name:
+                    task["place_receptacle_start_pose"] = new_pose
 
     if changed:
         with open(BENCHMARK_JSON, "w") as f:
             json.dump(episodes, f, indent=2)
         print(f"\nUpdated {BENCHMARK_JSON}")
     else:
-        print(f"\nNo position changes detected in benchmark objects.")
+        print(f"\nNo position changes detected.")
 
     print("\nNext steps:")
     print("  1. Update furniture positions in create_book_pencil_benchmark.py")
