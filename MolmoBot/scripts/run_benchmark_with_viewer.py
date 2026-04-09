@@ -29,6 +29,7 @@ import time
 from pathlib import Path
 
 import mujoco
+import mujoco.viewer
 import numpy as np
 from PIL import Image
 from scipy.spatial.transform import Rotation as R
