@@ -70,7 +70,7 @@ OBJECT_NAMES = {
     "DishSponge_1": "sponge", "Spatula_1": "spatula", "Knife_1": "knife",
     "Cup_5": "cup", "Bowl_3": "bowl", "Vase_Open_1": "vase",
     "Plate_1": "plate", "bookcase": "bookcase",
-    "SaltShaker_1": "salt shaker",
+    "Salt_Shaker_1": "salt shaker",
 }
 
 OBJAVERSE_NAMES = {
@@ -82,7 +82,7 @@ OBJAVERSE_NAMES = {
 
 def generate_default_config():
     """Generate default config with 4 groups for comparison."""
-    thor_pickups = ["SaltShaker_1", "Mug_1", "Egg_1", "Candle_1", "Tomato_1"]
+    thor_pickups = ["Salt_Shaker_1", "Mug_1", "Egg_1", "Candle_1", "Tomato_1"]
     thor_receptacles = ["Bowl_3"]
     objaverse_receptacles = [
         "objaverse:45bb173c0384450487421b687bf3bf5b",
