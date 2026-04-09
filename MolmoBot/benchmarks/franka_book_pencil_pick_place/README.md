@@ -122,11 +122,14 @@ python scripts/view_benchmark_scene.py  # mujoco.viewer.launch 사용 (블로킹
 
 ## 원본 ProcTHOR 데모 (학습 씬)
 
-학습 데이터와 동일한 ProcTHOR 씬에서 정책을 실행. 리더십 데모에 유용: 학습 씬 성능 → 새 벤치마크 씬과 비교.
+학습 데이터와 동일한 ProcTHOR 씬에서 정책을 실행. 학습 씬 성능과 새 벤치마크 씬 비교에 유용.
 
 ```bash
-# 솔트셰이커 → 볼 (기본, 24초)
-python scripts/run_original_demo_with_viewer.py --checkpoint_path <path>
+# Linux — MUJOCO_GL=egl 필요
+MUJOCO_GL=egl python scripts/run_original_demo_with_viewer.py --checkpoint_path <path>
+
+# macOS
+mjpython scripts/run_original_demo_with_viewer.py --checkpoint_path <path>
 
 # 문 열기 (18초)
 python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --task door_open
