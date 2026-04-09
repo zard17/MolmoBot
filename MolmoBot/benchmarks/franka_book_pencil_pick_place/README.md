@@ -144,6 +144,35 @@ python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --durat
 python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --no-viewer
 ```
 
+## 씬 편집 (mujoco-scene-editor 연동)
+
+`mjedit`를 사용해 물체 위치를 시각적으로 드래그해서 조정 가능.
+
+```bash
+# 사전 설치
+pip install mujoco-scene-editor
+
+# 1. 전체 씬 XML 내보내기 (씬 + 로봇 + 물체 합침)
+python scripts/scene_editor_helper.py export
+
+# 2. mjedit에서 편집 (물체 드래그, 저장)
+mjedit benchmarks/franka_book_pencil_pick_place/full_scene_editable.xml
+
+# 3. 편집된 위치를 benchmark.json으로 가져오기
+python scripts/scene_editor_helper.py import
+
+# 4. 스크립트 위치 업데이트 + 씬 재생성
+python scripts/create_book_pencil_benchmark.py
+
+# 5. 확인
+python scripts/view_benchmark_scene.py --preview
+```
+
+참고:
+- 가구(책상, 책장)는 `<body>` 단위로 이동 가능
+- 물체 위치는 `import`시 자동으로 `benchmark.json` 업데이트
+- 가구 위치는 수동으로 `create_book_pencil_benchmark.py` 등에 반영 필요 (import가 새 값을 출력함)
+
 ## 파일 구성
 
 | 파일 | 설명 |
@@ -156,4 +185,6 @@ python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --no-vi
 | `benchmarks/.../desk.xml` | 책상 프리미티브 XML |
 | `benchmarks/.../bookcase.xml` | 책장 프리미티브 XML |
 | `scripts/run_original_demo_with_viewer.py` | 원본 ProcTHOR 데모 (학습 씬) + 뷰어 |
+| `scripts/scene_editor_helper.py` | mjedit 연동 내보내기/가져오기 도구 |
+| `benchmarks/.../full_scene_editable.xml` | mjedit용 전체 씬 (export로 생성) |
 | `olmo/eval/configure_molmo_spaces.py` | `FrankaCustomSceneEvalConfig` 평가 설정 |
