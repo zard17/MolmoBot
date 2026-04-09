@@ -295,6 +295,9 @@ def run_single_episode(spec_template, robot_config, policy, pickup_uid, receptac
         nstep = max(1, POLICY_DT_MS // max(1, round(model.opt.timestep * 1000)))
         mujoco.mj_step(model, data, nstep=nstep)
 
+        if (step + 1) % 50 == 0:
+            print(f"    Step {step + 1}/{task_horizon}", flush=True)
+
     # Simple success heuristic: pickup object moved significantly from start
     final_pickup_z = data.xpos[pickup_body_id][2] if pickup_body_id >= 0 else 0
     pickup_moved = abs(final_pickup_z - initial_pickup_z) > 0.05
