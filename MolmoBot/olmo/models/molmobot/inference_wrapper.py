@@ -318,9 +318,10 @@ class SynthManipMolmoInferenceWrapper:
         model_inputs = {k: v for k, v in model_inputs.items() if v is not None}
 
         # Generate actions
+        use_autocast = self.use_bfloat16 and self.device.type == "cuda"
         with torch.no_grad():
-            if self.use_bfloat16:
-                with torch.autocast(device_type=self.device.type, dtype=torch.bfloat16):
+            if use_autocast:
+                with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
                     actions = self.model.generate_actions(
                         **model_inputs,
                         num_steps=self.num_flow_steps,
