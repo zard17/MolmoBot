@@ -19,26 +19,29 @@ pip install -e .
 python -c "from huggingface_hub import snapshot_download; snapshot_download('allenai/MolmoBot-DROID')"
 ```
 
-## 빠른 시작: 실시간 뷰어로 실행
+## 빠른 시작: 실시간 뷰어로 실행 (커스텀 벤치마크 씬)
+
+커스텀 씬에서 단일 에피소드를 실행. 뷰어로 실시간 확인 가능.
 
 ```bash
-# Linux (X11/EGL) — MuJoCo 뷰어 창이 뜸
+# 에피소드 0: "pick up the tissue box and place it in the bookcase"
 MUJOCO_GL=egl python scripts/run_benchmark_with_viewer.py \
-  --checkpoint_path ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/
+  --checkpoint_path <path> --episode 0
+
+# 에피소드 1: "pick up the pencil and put it in the cup"
+MUJOCO_GL=egl python scripts/run_benchmark_with_viewer.py \
+  --checkpoint_path <path> --episode 1
 
 # macOS — 뷰어 사용시 mjpython 필요
-mjpython scripts/run_benchmark_with_viewer.py \
-  --checkpoint_path ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/
+mjpython scripts/run_benchmark_with_viewer.py --checkpoint_path <path>
 
 # 뷰어 없이 (영상만 저장)
-python scripts/run_benchmark_with_viewer.py \
-  --checkpoint_path ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/ \
-  --no-viewer
+python scripts/run_benchmark_with_viewer.py --checkpoint_path <path> --no-viewer
 ```
 
 옵션:
 - `--task_horizon 200` — 에피소드당 최대 스텝 수 (기본값: 200)
-- `--episode 0` — 실행할 태스크: 0=티슈박스, 1=연필 (기본값: 0)
+- `--episode 0` — 실행할 태스크: 0=티슈박스→책장, 1=연필→컵 (기본값: 0)
 - `--output_dir <path>` — 영상 저장 경로
 
 ## 전체 평가 (run_eval.py)
@@ -125,14 +128,14 @@ python scripts/view_benchmark_scene.py  # mujoco.viewer.launch 사용 (블로킹
 학습 데이터와 동일한 ProcTHOR 씬에서 정책을 실행. 학습 씬 성능과 새 벤치마크 씬 비교에 유용.
 
 ```bash
-# Linux — MUJOCO_GL=egl 필요
+# pick_and_place: "put the salt shaker in the bowl" (기본, ProcTHOR 주방, 24초)
 MUJOCO_GL=egl python scripts/run_original_demo_with_viewer.py --checkpoint_path <path>
+
+# door_open: "open the door" (ProcTHOR 문, 18초)
+MUJOCO_GL=egl python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --task door_open
 
 # macOS
 mjpython scripts/run_original_demo_with_viewer.py --checkpoint_path <path>
-
-# 문 열기 (18초)
-python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --task door_open
 
 # 시간 변경
 python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --duration_s 30
