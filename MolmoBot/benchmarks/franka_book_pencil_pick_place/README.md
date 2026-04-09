@@ -120,6 +120,24 @@ python scripts/view_benchmark_scene.py
 python scripts/view_benchmark_scene.py  # mujoco.viewer.launch 사용 (블로킹)
 ```
 
+## 원본 ProcTHOR 데모 (학습 씬)
+
+학습 데이터와 동일한 ProcTHOR 씬에서 정책을 실행. 리더십 데모에 유용: 학습 씬 성능 → 새 벤치마크 씬과 비교.
+
+```bash
+# 솔트셰이커 → 볼 (기본, 24초)
+python scripts/run_original_demo_with_viewer.py --checkpoint_path <path>
+
+# 문 열기 (18초)
+python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --task door_open
+
+# 시간 변경
+python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --duration_s 30
+
+# 뷰어 없이
+python scripts/run_original_demo_with_viewer.py --checkpoint_path <path> --no-viewer
+```
+
 ## 파일 구성
 
 | 파일 | 설명 |
@@ -131,4 +149,5 @@ python scripts/view_benchmark_scene.py  # mujoco.viewer.launch 사용 (블로킹
 | `benchmarks/.../custom_scene.xml` | 씬 XML (바닥 + 책상 + 책장) |
 | `benchmarks/.../desk.xml` | 책상 프리미티브 XML |
 | `benchmarks/.../bookcase.xml` | 책장 프리미티브 XML |
+| `scripts/run_original_demo_with_viewer.py` | 원본 ProcTHOR 데모 (학습 씬) + 뷰어 |
 | `olmo/eval/configure_molmo_spaces.py` | `FrankaCustomSceneEvalConfig` 평가 설정 |
