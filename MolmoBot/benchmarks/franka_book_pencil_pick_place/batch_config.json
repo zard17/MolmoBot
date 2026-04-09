@@ -1,0 +1,126 @@
+{
+  "task_horizon": 600,
+  "repeats": 3,
+  "tasks": [
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Cup_5"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "bookcase"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "Cup_5"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "bookcase"
+    },
+    {
+      "pickup": "Egg_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "pickup": "Egg_1",
+      "receptacle": "Cup_5"
+    },
+    {
+      "pickup": "Egg_1",
+      "receptacle": "bookcase"
+    },
+    {
+      "pickup": "Candle_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "pickup": "Candle_1",
+      "receptacle": "Cup_5"
+    },
+    {
+      "pickup": "Candle_1",
+      "receptacle": "bookcase"
+    },
+    {
+      "pickup": "Tissue_Box_1",
+      "receptacle": "Bowl_3"
+    },
+    {
+      "pickup": "Tissue_Box_1",
+      "receptacle": "Cup_5"
+    },
+    {
+      "pickup": "Tissue_Box_1",
+      "receptacle": "bookcase"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
+    },
+    {
+      "pickup": "Egg_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "pickup": "Egg_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "pickup": "Egg_1",
+      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
+    },
+    {
+      "pickup": "Candle_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "pickup": "Candle_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "pickup": "Candle_1",
+      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
+    },
+    {
+      "pickup": "Tissue_Box_1",
+      "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
+    },
+    {
+      "pickup": "Tissue_Box_1",
+      "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "pickup": "Tissue_Box_1",
+      "receptacle": "objaverse:cf937fff1d494219962d2031aec345aa"
+    }
+  ]
+}
