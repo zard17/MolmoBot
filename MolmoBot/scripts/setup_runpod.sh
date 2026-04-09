@@ -47,6 +47,7 @@ source .venv/bin/activate
 
 echo "Installing dependencies (this takes ~3 minutes)..."
 pip install --upgrade pip
+pip install mujoco
 pip install -e .
 
 # 6. Download checkpoint
