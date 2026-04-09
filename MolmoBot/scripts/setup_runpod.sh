@@ -38,17 +38,17 @@ git fetch origin
 git checkout feat/interactive-object-swap
 git pull
 
-# 5. Create venv and install
-if [ ! -d ".venv" ]; then
-    echo "Creating venv..."
-    $PYTHON_CMD -m venv .venv
+# 5. Install uv if needed
+if ! command -v uv &> /dev/null; then
+    echo "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
 fi
-source .venv/bin/activate
 
-echo "Installing dependencies (this takes ~3 minutes)..."
-pip install --upgrade pip
-pip install mujoco PyOpenGL PyOpenGL-accelerate
-pip install -e .
+# 6. Install dependencies with uv
+echo "Installing dependencies with uv sync..."
+uv sync --extra eval
+source .venv/bin/activate
 
 # 6. Download checkpoint
 echo "Downloading MolmoBot-DROID checkpoint..."
