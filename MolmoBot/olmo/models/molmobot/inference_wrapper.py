@@ -320,7 +320,7 @@ class SynthManipMolmoInferenceWrapper:
         # Generate actions
         with torch.no_grad():
             if self.use_bfloat16:
-                with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+                with torch.autocast(device_type=self.device.type, dtype=torch.bfloat16):
                     actions = self.model.generate_actions(
                         **model_inputs,
                         num_steps=self.num_flow_steps,
