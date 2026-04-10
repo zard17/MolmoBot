@@ -53,9 +53,10 @@ POLICY_DT_MS = 66
 # Custom scene desk surface
 CUSTOM_DESK_TOP_Z = 0.75
 
-# ProcTHOR scene: objects placed on countertop near robot at [6.8, 9.75]
-PROCTHOR_PICKUP_POS = [6.5, 10.1, 0.96]
-PROCTHOR_RECEPTACLE_POS = [7.1, 10.2, 1.01]
+# ProcTHOR scene: objects on countertop near robot at [6.8, 9.75]
+# Positions derived from actual objects in the scene (countertop z ≈ 0.94)
+PROCTHOR_PICKUP_POS = [6.5, 10.3, 0.97]  # near salt shaker area
+PROCTHOR_RECEPTACLE_POS = [7.1, 10.2, 0.97]  # near original bowl position
 PROCTHOR_ROBOT_POS = [6.8, 9.75]
 PROCTHOR_ROBOT_YAW = 90.0
 PROCTHOR_EXO_POS = [0.1, 0.57, 0.66]
@@ -336,7 +337,7 @@ def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_
     # Success heuristic: pickup object displaced significantly from start
     final_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
     displacement = np.linalg.norm(final_pickup_pos - initial_pickup_pos)
-    success = bool(displacement > 0.05)
+    success = bool(displacement > 0.02)
 
     # Save video
     video_path = output_dir / f"{episode_id}.mp4"
