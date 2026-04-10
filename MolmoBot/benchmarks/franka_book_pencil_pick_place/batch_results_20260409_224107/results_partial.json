@@ -1,0 +1,114 @@
+{
+  "completed": 12,
+  "total": 90,
+  "results": [
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the mug and place it in the bowl",
+      "group": "thor",
+      "trial": 0,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep001_mug_bowl_t0.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the mug and place it in the bowl",
+      "group": "thor",
+      "trial": 1,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep002_mug_bowl_t1.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the mug and place it in the bowl",
+      "group": "thor",
+      "trial": 2,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep003_mug_bowl_t2.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Cup_5",
+      "prompt": "pick up the mug and place it in the cup",
+      "group": "thor",
+      "trial": 0,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep004_mug_cup_t0.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Cup_5",
+      "prompt": "pick up the mug and place it in the cup",
+      "group": "thor",
+      "trial": 1,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep005_mug_cup_t1.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Cup_5",
+      "prompt": "pick up the mug and place it in the cup",
+      "group": "thor",
+      "trial": 2,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep006_mug_cup_t2.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "bookcase",
+      "prompt": "pick up the mug and place it in the bookcase",
+      "group": "thor",
+      "trial": 0,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep007_mug_bookcase_t0.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "bookcase",
+      "prompt": "pick up the mug and place it in the bookcase",
+      "group": "thor",
+      "trial": 1,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep008_mug_bookcase_t1.mp4"
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "bookcase",
+      "prompt": "pick up the mug and place it in the bookcase",
+      "group": "thor",
+      "trial": 2,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep009_mug_bookcase_t2.mp4"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the apple and place it in the bowl",
+      "group": "thor",
+      "trial": 0,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep010_apple_bowl_t0.mp4"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the apple and place it in the bowl",
+      "group": "thor",
+      "trial": 1,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep011_apple_bowl_t1.mp4"
+    },
+    {
+      "pickup": "Apple_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the apple and place it in the bowl",
+      "group": "thor",
+      "trial": 2,
+      "success": false,
+      "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260409_224107/ep012_apple_bowl_t2.mp4"
+    }
+  ]
+}

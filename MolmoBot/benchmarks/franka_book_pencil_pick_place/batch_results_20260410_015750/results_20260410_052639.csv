@@ -1,0 +1,3 @@
+scene,pickup,receptacle,prompt,group,trial,success,video_path
+custom,Egg_1,Bowl_3,pick up the egg and place it in the bowl,C: Custom+Thor (scene gen),1,False,/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260410_015750/ep053_custom_egg_bowl_t1.mp4
+custom,Egg_1,Bowl_3,pick up the egg and place it in the bowl,C: Custom+Thor (scene gen),2,False,/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260410_015750/ep054_custom_egg_bowl_t2.mp4

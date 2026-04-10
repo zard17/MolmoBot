@@ -1,0 +1,87 @@
+{
+  "completed": 9,
+  "total": 90,
+  "results": [
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the mug and place it in the bowl",
+      "group": "thor",
+      "trial": 0,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the mug and place it in the bowl",
+      "group": "thor",
+      "trial": 1,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the mug and place it in the bowl",
+      "group": "thor",
+      "trial": 2,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Cup_5",
+      "prompt": "pick up the mug and place it in the cup",
+      "group": "thor",
+      "trial": 0,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Cup_5",
+      "prompt": "pick up the mug and place it in the cup",
+      "group": "thor",
+      "trial": 1,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "Cup_5",
+      "prompt": "pick up the mug and place it in the cup",
+      "group": "thor",
+      "trial": 2,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "bookcase",
+      "prompt": "pick up the mug and place it in the bookcase",
+      "group": "thor",
+      "trial": 0,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "bookcase",
+      "prompt": "pick up the mug and place it in the bookcase",
+      "group": "thor",
+      "trial": 1,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "pickup": "Mug_1",
+      "receptacle": "bookcase",
+      "prompt": "pick up the mug and place it in the bookcase",
+      "group": "thor",
+      "trial": 2,
+      "success": false,
+      "video_path": ""
+    }
+  ]
+}

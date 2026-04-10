@@ -1,0 +1,42 @@
+{
+  "completed": 4,
+  "total": 90,
+  "results": [
+    {
+      "scene": "procthor",
+      "pickup": "SaltShaker_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the salt shaker and place it in the bowl",
+      "group": "A: ProcTHOR+Thor (baseline)",
+      "trial": 0,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "scene": "procthor",
+      "pickup": "SaltShaker_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the salt shaker and place it in the bowl",
+      "group": "A: ProcTHOR+Thor (baseline)",
+      "trial": 1,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "scene": "procthor",
+      "pickup": "SaltShaker_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the salt shaker and place it in the bowl",
+      "group": "A: ProcTHOR+Thor (baseline)",
+      "trial": 2,
+      "success": false,
+      "video_path": ""
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Mug_1",
+      "receptacle": "Bowl_3",
+      "prompt": "pick up the mug and place it in the bowl",
+      "group": "A: ProcTHOR+Thor (baseline)",
+      "trial": 0,
+      "success": 
