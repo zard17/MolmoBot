@@ -91,6 +91,24 @@ def generate_default_config():
         "objaverse:d6fcfa410dfe402ba412cc7abe756cfd",
     ]
 
+    # Position variations for stress testing
+    # ProcTHOR: countertop area near robot [6.8, 9.75]
+    procthor_positions = {
+        "default": None,  # uses PROCTHOR_PICKUP_POS
+        "left":    [6.2, 10.2, 1.0],   # further left on countertop
+        "right":   [7.0, 10.0, 1.0],   # further right
+        "close":   [6.7, 10.0, 1.0],   # closer to robot
+        "far":     [6.2, 10.4, 1.0],   # further from robot
+    }
+    # Custom: desk area near robot [0, 0]
+    custom_positions = {
+        "default": None,  # uses default desk position
+        "left":    [0.4, 0.35, CUSTOM_DESK_TOP_Z + 0.04],
+        "right":   [0.7, 0.15, CUSTOM_DESK_TOP_Z + 0.04],
+        "close":   [0.4, 0.15, CUSTOM_DESK_TOP_Z + 0.04],
+        "far":     [0.8, 0.35, CUSTOM_DESK_TOP_Z + 0.04],
+    }
+
     tasks = []
 
     # Group A: ProcTHOR scene + Thor objects (baseline — closest to training)
@@ -112,6 +130,26 @@ def generate_default_config():
     for p in thor_pickups:
         for r in objaverse_receptacles:
             tasks.append({"scene": "custom", "pickup": p, "receptacle": r})
+
+    # Group E: Position variation — ProcTHOR (position robustness)
+    test_pickup = "Salt_Shaker_1"
+    test_receptacle = "Bowl_3"
+    for pos_name, pos in procthor_positions.items():
+        if pos_name == "default":
+            continue  # already in Group A
+        tasks.append({
+            "scene": "procthor", "pickup": test_pickup, "receptacle": test_receptacle,
+            "pickup_pos": pos, "pos_label": pos_name,
+        })
+
+    # Group F: Position variation — Custom scene (position robustness)
+    for pos_name, pos in custom_positions.items():
+        if pos_name == "default":
+            continue
+        tasks.append({
+            "scene": "custom", "pickup": test_pickup, "receptacle": test_receptacle,
+            "pickup_pos": pos, "pos_label": pos_name,
+        })
 
     config = {
         "task_horizon": 600,
@@ -154,7 +192,9 @@ def get_object_type(uid_str: str) -> str:
     return "thor"
 
 
-def get_group_name(scene: str, receptacle: str) -> str:
+def get_group_name(scene: str, receptacle: str, pos_label: str = None) -> str:
+    if pos_label:
+        return f"E: Position variation ({scene}, {pos_label})"
     obj_type = get_object_type(receptacle)
     if scene == "procthor" and obj_type == "thor":
         return "A: ProcTHOR+Thor (baseline)"
@@ -181,7 +221,7 @@ def load_object(uid_str: str) -> Path:
         return install_uid(uid_str)
 
 
-def build_procthor_scene(robot_config, pickup_uid, receptacle_uid):
+def build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None):
     """Build ProcTHOR val house 0 scene with swapped objects."""
     houses = get_procthor_10k_houses(split="val")
     house_xml = houses["val"][0]["base"]
@@ -211,7 +251,7 @@ def build_procthor_scene(robot_config, pickup_uid, receptacle_uid):
     pickup_body_orig_name = pickup_body.name  # save before attach modifies it
     if not pickup_body.first_joint():
         pickup_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
-    pf = spec.worldbody.add_frame(pos=PROCTHOR_PICKUP_POS, quat=THOR_QUAT)
+    pf = spec.worldbody.add_frame(pos=pickup_pos or PROCTHOR_PICKUP_POS, quat=THOR_QUAT)
     pf.attach_body(pickup_body, "pickup_object/", "")
 
     # Add receptacle
@@ -226,7 +266,7 @@ def build_procthor_scene(robot_config, pickup_uid, receptacle_uid):
     return spec, pickup_body_orig_name
 
 
-def build_custom_scene(robot_config, pickup_uid, receptacle_uid):
+def build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None):
     """Build custom scene with primitive desk + bookcase."""
     spec = mujoco.MjSpec.from_file(str(HOUSE_BASE_XML))
 
@@ -269,7 +309,8 @@ def build_custom_scene(robot_config, pickup_uid, receptacle_uid):
     pickup_body_orig_name = pickup_body.name  # save before attach modifies it
     if not pickup_body.first_joint():
         pickup_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
-    pf = spec.worldbody.add_frame(pos=[0.55, 0.25, CUSTOM_DESK_TOP_Z + 0.04], quat=THOR_QUAT)
+    default_custom_pos = [0.55, 0.25, CUSTOM_DESK_TOP_Z + 0.04]
+    pf = spec.worldbody.add_frame(pos=pickup_pos or default_custom_pos, quat=THOR_QUAT)
     pf.attach_body(pickup_body, "pickup_object/", "")
 
     # Receptacle
@@ -285,12 +326,12 @@ def build_custom_scene(robot_config, pickup_uid, receptacle_uid):
     return spec, pickup_body_orig_name
 
 
-def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_uid, prompt, task_horizon, output_dir, episode_id):
+def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_uid, prompt, task_horizon, output_dir, episode_id, pickup_pos=None):
     """Run a single episode. Returns success (bool) and video path."""
     if scene_type == "procthor":
-        spec, pickup_body_name = build_procthor_scene(robot_config, pickup_uid, receptacle_uid)
+        spec, pickup_body_name = build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=pickup_pos)
     else:
-        spec, pickup_body_name = build_custom_scene(robot_config, pickup_uid, receptacle_uid)
+        spec, pickup_body_name = build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=pickup_pos)
 
     model = spec.compile()
     data = mujoco.MjData(model)
@@ -578,8 +619,9 @@ def main():
 
         pickup_name = get_object_name(pickup)
         receptacle_name = get_object_name(receptacle)
+        pos_label = task.get("pos_label")
         prompt = task.get("prompt") or f"pick up the {pickup_name} and place it in the {receptacle_name}"
-        group = get_group_name(scene_type, receptacle)
+        group = get_group_name(scene_type, receptacle, pos_label=pos_label)
 
         for trial in range(repeats):
             episode_num += 1
@@ -591,10 +633,12 @@ def main():
             print(f"[{episode_num}/{total_episodes}] [{scene_type}] {pickup_name} → {receptacle_name} (trial {trial+1}/{repeats})", flush=True)
 
             try:
+                pickup_pos = task.get("pickup_pos")
                 success, video_path = run_single_episode(
                     robot_config, policy, scene_type,
                     pickup, receptacle, prompt,
                     task_horizon, output_dir, episode_id,
+                    pickup_pos=pickup_pos,
                 )
                 status = "PASS" if success else "FAIL"
                 print(f"  → {status}", flush=True)

@@ -4,7 +4,7 @@
   "tasks": [
     {
       "scene": "procthor",
-      "pickup": "SaltShaker_1",
+      "pickup": "Salt_Shaker_1",
       "receptacle": "Bowl_3"
     },
     {
@@ -29,12 +29,12 @@
     },
     {
       "scene": "procthor",
-      "pickup": "SaltShaker_1",
+      "pickup": "Salt_Shaker_1",
       "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
       "scene": "procthor",
-      "pickup": "SaltShaker_1",
+      "pickup": "Salt_Shaker_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
     },
     {
@@ -79,7 +79,7 @@
     },
     {
       "scene": "custom",
-      "pickup": "SaltShaker_1",
+      "pickup": "Salt_Shaker_1",
       "receptacle": "Bowl_3"
     },
     {
@@ -104,12 +104,12 @@
     },
     {
       "scene": "custom",
-      "pickup": "SaltShaker_1",
+      "pickup": "Salt_Shaker_1",
       "receptacle": "objaverse:45bb173c0384450487421b687bf3bf5b"
     },
     {
       "scene": "custom",
-      "pickup": "SaltShaker_1",
+      "pickup": "Salt_Shaker_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
     },
     {
@@ -151,6 +151,94 @@
       "scene": "custom",
       "pickup": "Tomato_1",
       "receptacle": "objaverse:d6fcfa410dfe402ba412cc7abe756cfd"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        6.2,
+        10.2,
+        1.0
+      ],
+      "pos_label": "left"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        7.0,
+        10.0,
+        1.0
+      ],
+      "pos_label": "right"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        6.7,
+        10.0,
+        1.0
+      ],
+      "pos_label": "close"
+    },
+    {
+      "scene": "procthor",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        6.2,
+        10.4,
+        1.0
+      ],
+      "pos_label": "far"
+    },
+    {
+      "scene": "custom",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        0.4,
+        0.35,
+        0.79
+      ],
+      "pos_label": "left"
+    },
+    {
+      "scene": "custom",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        0.7,
+        0.15,
+        0.79
+      ],
+      "pos_label": "right"
+    },
+    {
+      "scene": "custom",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        0.4,
+        0.15,
+        0.79
+      ],
+      "pos_label": "close"
+    },
+    {
+      "scene": "custom",
+      "pickup": "Salt_Shaker_1",
+      "receptacle": "Bowl_3",
+      "pickup_pos": [
+        0.8,
+        0.35,
+        0.79
+      ],
+      "pos_label": "far"
     }
   ]
 }
