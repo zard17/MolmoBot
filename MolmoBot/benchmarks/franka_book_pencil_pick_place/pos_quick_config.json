@@ -1,0 +1,14 @@
+{
+  "task_horizon": 300,
+  "repeats": 1,
+  "tasks": [
+    {"scene": "procthor", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [6.4, 10.15, 1.0], "pos_label": "left"},
+    {"scene": "procthor", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [6.9, 10.05, 1.0], "pos_label": "right"},
+    {"scene": "procthor", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [6.7, 10.0, 1.0], "pos_label": "close"},
+    {"scene": "procthor", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [6.4, 10.25, 1.0], "pos_label": "far"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [0.45, 0.30, 0.79], "pos_label": "left"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [0.65, 0.15, 0.79], "pos_label": "right"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [0.40, 0.20, 0.79], "pos_label": "close"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "pickup_pos": [0.70, 0.35, 0.79], "pos_label": "far"}
+  ]
+}
