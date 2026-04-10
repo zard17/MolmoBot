@@ -92,21 +92,22 @@ def generate_default_config():
     ]
 
     # Position variations for stress testing
+    # All positions within 0.6m of robot (comfortable reach + camera view)
     # ProcTHOR: countertop area near robot [6.8, 9.75]
     procthor_positions = {
-        "default": None,  # uses PROCTHOR_PICKUP_POS
-        "left":    [6.2, 10.2, 1.0],   # further left on countertop
-        "right":   [7.0, 10.0, 1.0],   # further right
-        "close":   [6.7, 10.0, 1.0],   # closer to robot
-        "far":     [6.2, 10.4, 1.0],   # further from robot
+        "default": None,  # uses PROCTHOR_PICKUP_POS [6.5, 10.1]
+        "left":    [6.4, 10.15, 1.0],  # ~0.55m, slight left
+        "right":   [6.9, 10.05, 1.0],  # ~0.32m, slight right
+        "close":   [6.7, 10.0, 1.0],   # ~0.27m, closer
+        "far":     [6.4, 10.25, 1.0],  # ~0.60m, further but reachable
     }
-    # Custom: desk area near robot [0, 0]
+    # Custom: desk area near robot [0, 0], desk center [0.75, 0.25]
     custom_positions = {
-        "default": None,  # uses default desk position
-        "left":    [0.4, 0.35, CUSTOM_DESK_TOP_Z + 0.04],
-        "right":   [0.7, 0.15, CUSTOM_DESK_TOP_Z + 0.04],
-        "close":   [0.4, 0.15, CUSTOM_DESK_TOP_Z + 0.04],
-        "far":     [0.8, 0.35, CUSTOM_DESK_TOP_Z + 0.04],
+        "default": None,
+        "left":    [0.45, 0.30, CUSTOM_DESK_TOP_Z + 0.04],  # left side of desk
+        "right":   [0.65, 0.15, CUSTOM_DESK_TOP_Z + 0.04],  # right side
+        "close":   [0.40, 0.20, CUSTOM_DESK_TOP_Z + 0.04],  # closer to robot
+        "far":     [0.70, 0.35, CUSTOM_DESK_TOP_Z + 0.04],  # far edge
     }
 
     tasks = []
