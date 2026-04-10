@@ -17,6 +17,9 @@ source .venv/bin/activate
 # Pull latest
 git pull
 
+# Initialize asset cache (needed after fresh restart)
+python -c "from molmo_spaces.molmo_spaces_constants import get_resource_manager; get_resource_manager(force_post_setup=True)"
+
 # Generate config
 python scripts/run_batch_eval.py --generate-config
 
