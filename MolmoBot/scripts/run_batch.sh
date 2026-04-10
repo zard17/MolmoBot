@@ -20,8 +20,39 @@ git pull
 # Initialize asset cache (only on first run or after fresh restart)
 mkdir -p ~/.cache/molmo-spaces-resources
 if ! python -c "from molmo_spaces.utils.lazy_loading_utils import install_uid; install_uid('Bowl_3')" 2>/dev/null; then
-    echo "Initializing asset cache (this downloads ~2GB on first run)..."
-    python -c "from molmo_spaces.molmo_spaces_constants import get_resource_manager; get_resource_manager(force_post_setup=True)"
+    echo "Initializing asset cache..."
+    python -c "
+from molmo_spaces.molmo_spaces_constants import get_resource_manager
+rm = get_resource_manager()
+
+# Install Thor objects needed for benchmark
+for source in ['thor']:
+    try:
+        packages = rm.unindexed_archives('objects', source)
+        if packages:
+            rm.install_packages('objects', {source: packages})
+            print(f'  Installed objects/{source}')
+    except Exception as e:
+        print(f'  objects/{source}: {e}')
+
+# Install ProcTHOR val scenes
+try:
+    packages = rm.unindexed_archives('scenes', 'procthor-10k-val')
+    if packages:
+        rm.install_packages('scenes', {'procthor-10k-val': packages})
+        print('  Installed scenes/procthor-10k-val')
+except Exception as e:
+    print(f'  scenes/procthor-10k-val: {e}')
+
+# Install robots
+try:
+    packages = rm.unindexed_archives('robots', 'franka_droid')
+    if packages:
+        rm.install_packages('robots', {'franka_droid': packages})
+        print('  Installed robots/franka_droid')
+except Exception as e:
+    print(f'  robots/franka_droid: {e}')
+"
 else
     echo "Asset cache OK"
 fi
