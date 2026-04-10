@@ -55,9 +55,9 @@ CUSTOM_DESK_TOP_Z = 0.75
 
 # ProcTHOR scene: objects on countertop near robot at [6.8, 9.75]
 # Positions derived from actual objects in the scene (countertop z ≈ 0.94)
-# Use positions from original demo that worked (ep001 salt shaker succeeded)
-PROCTHOR_PICKUP_POS = [6.5, 10.1, 0.96]
-PROCTHOR_RECEPTACLE_POS = [7.1, 10.2, 1.01]
+# Place objects slightly above countertop — they settle during physics warmup
+PROCTHOR_PICKUP_POS = [6.5, 10.1, 1.0]
+PROCTHOR_RECEPTACLE_POS = [7.1, 10.2, 1.05]
 PROCTHOR_ROBOT_POS = [6.8, 9.75]
 PROCTHOR_ROBOT_YAW = 90.0
 PROCTHOR_EXO_POS = [0.1, 0.57, 0.66]
@@ -299,11 +299,16 @@ def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_
         view.get_move_group(mg_id).ctrl = view.get_move_group(mg_id).noop_ctrl
     mujoco.mj_forward(model, data)
 
+    # Let objects settle (prevents flying out from collision penetration)
+    for _ in range(200):
+        mujoco.mj_step(model, data)
+    mujoco.mj_forward(model, data)
+
     renderer = mujoco.Renderer(model, RENDER_HEIGHT, RENDER_WIDTH)
     scene_option = mujoco.MjvOption()
     scene_option.sitegroup = 0
 
-    # Record initial pickup position
+    # Record initial pickup position (after settling)
     pickup_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pickup_object/" + pickup_body_name)
     initial_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
     max_displacement = 0.0
