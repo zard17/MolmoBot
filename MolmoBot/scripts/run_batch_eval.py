@@ -208,6 +208,7 @@ def build_procthor_scene(robot_config, pickup_uid, receptacle_uid):
     pickup_xml = load_object(pickup_uid)
     pickup_spec = mujoco.MjSpec.from_file(str(pickup_xml))
     pickup_body = pickup_spec.worldbody.bodies[0]
+    pickup_body_orig_name = pickup_body.name  # save before attach modifies it
     if not pickup_body.first_joint():
         pickup_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
     pf = spec.worldbody.add_frame(pos=PROCTHOR_PICKUP_POS, quat=THOR_QUAT)
@@ -222,7 +223,7 @@ def build_procthor_scene(robot_config, pickup_uid, receptacle_uid):
     rf = spec.worldbody.add_frame(pos=PROCTHOR_RECEPTACLE_POS, quat=THOR_QUAT)
     rf.attach_body(recep_body, "place_receptacle/", "")
 
-    return spec, pickup_body.name
+    return spec, pickup_body_orig_name
 
 
 def build_custom_scene(robot_config, pickup_uid, receptacle_uid):
@@ -265,6 +266,7 @@ def build_custom_scene(robot_config, pickup_uid, receptacle_uid):
     pickup_xml = load_object(pickup_uid)
     pickup_spec = mujoco.MjSpec.from_file(str(pickup_xml))
     pickup_body = pickup_spec.worldbody.bodies[0]
+    pickup_body_orig_name = pickup_body.name  # save before attach modifies it
     if not pickup_body.first_joint():
         pickup_body.add_joint(name="jntfree", type=mujoco.mjtJoint.mjJNT_FREE, damping=1.0)
     pf = spec.worldbody.add_frame(pos=[0.55, 0.25, CUSTOM_DESK_TOP_Z + 0.04], quat=THOR_QUAT)
@@ -280,7 +282,7 @@ def build_custom_scene(robot_config, pickup_uid, receptacle_uid):
         rf = spec.worldbody.add_frame(pos=[0.65, 0.35, CUSTOM_DESK_TOP_Z + 0.08], quat=THOR_QUAT)
         rf.attach_body(recep_body, "place_receptacle/", "")
 
-    return spec, pickup_body.name
+    return spec, pickup_body_orig_name
 
 
 def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_uid, prompt, task_horizon, output_dir, episode_id):
