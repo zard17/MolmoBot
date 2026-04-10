@@ -55,10 +55,9 @@ CUSTOM_DESK_TOP_Z = 0.75
 
 # ProcTHOR scene: objects on countertop near robot at [6.8, 9.75]
 # Positions derived from actual objects in the scene (countertop z ≈ 0.94)
-# Countertop surface z ≈ 0.94, objects sit at 0.94-0.99
-# Place above surface so objects drop and settle (not inside countertop)
-PROCTHOR_PICKUP_POS = [6.5, 10.3, 1.05]  # above countertop, will settle
-PROCTHOR_RECEPTACLE_POS = [7.1, 10.2, 1.05]
+# Use positions from original demo that worked (ep001 salt shaker succeeded)
+PROCTHOR_PICKUP_POS = [6.5, 10.1, 0.96]
+PROCTHOR_RECEPTACLE_POS = [7.1, 10.2, 1.01]
 PROCTHOR_ROBOT_POS = [6.8, 9.75]
 PROCTHOR_ROBOT_YAW = 90.0
 PROCTHOR_EXO_POS = [0.1, 0.57, 0.66]
