@@ -1,0 +1,2 @@
+scene,pickup,receptacle,prompt,group,trial,success,video_path
+custom,Salt_Shaker_1,Bowl_3,pick up the salt shaker and place it in the bowl,"E: Position variation (custom, far)",0,True,/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260410_072211/ep112_custom_salt shaker_bowl_t0.mp4
