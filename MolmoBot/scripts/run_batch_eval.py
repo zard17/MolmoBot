@@ -478,8 +478,9 @@ def main():
     parser.add_argument("--config", type=str, help="Path to batch config JSON")
     parser.add_argument("--generate-config", action="store_true", help="Generate default config and exit")
     parser.add_argument("--task_horizon_override", type=int, default=None)
-    parser.add_argument("--start", type=int, default=1, help="Start from episode N (1-indexed)")
+    parser.add_argument("--start", type=int, default=None, help="Start from episode N (1-indexed)")
     parser.add_argument("--end", type=int, default=None, help="End at episode N (inclusive)")
+    parser.add_argument("--resume", action="store_true", help="Resume from last run (reads results_partial.json)")
     parser.add_argument("--output_dir", type=str, default=None)
     args = parser.parse_args()
 
@@ -501,8 +502,33 @@ def main():
     print(f"Batch evaluation: {len(tasks)} combinations × {repeats} repeats = {total_episodes} episodes")
     print(f"Task horizon: {task_horizon} steps")
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_dir = Path(args.output_dir) if args.output_dir else BENCHMARK_DIR / f"batch_results_{timestamp}"
+    # Handle --resume: find last run and continue
+    prior_results = []
+    if args.resume:
+        # Find most recent batch_results_* directory
+        batch_dirs = sorted(BENCHMARK_DIR.glob("batch_results_*"))
+        if batch_dirs:
+            output_dir = batch_dirs[-1]
+            partial_path = output_dir / "results_partial.json"
+            if partial_path.exists():
+                with open(partial_path) as f:
+                    partial = json.load(f)
+                prior_results = partial.get("results", [])
+                completed = partial.get("completed", 0)
+                if args.start is None:
+                    args.start = completed + 1
+                print(f"Resuming from {output_dir}")
+                print(f"  Previously completed: {completed}/{total_episodes}")
+                print(f"  Starting from episode {args.start}")
+            else:
+                print(f"No results_partial.json in {output_dir}, starting fresh")
+        else:
+            print("No previous runs found, starting fresh")
+
+    if not args.resume or not batch_dirs:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_dir = Path(args.output_dir) if args.output_dir else BENCHMARK_DIR / f"batch_results_{timestamp}"
+
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"Output: {output_dir}")
 
@@ -539,11 +565,11 @@ def main():
     print("Policy loaded.\n", flush=True)
 
     # Run episodes
-    start_ep = args.start
+    start_ep = args.start or 1
     end_ep = args.end or total_episodes
     print(f"Running episodes {start_ep} to {end_ep} (of {total_episodes})\n", flush=True)
 
-    results = []
+    results = list(prior_results)
     episode_num = 0
     for task_idx, task in enumerate(tasks):
         scene_type = task.get("scene", "custom")
