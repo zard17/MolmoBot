@@ -87,9 +87,69 @@ MolmoBot-DROID 정책이 학습 분포(ProcTHOR 씬 + Thor 오브젝트) 밖의 
 | custom | salt shaker | gray bowl | 3/3 | 100% |
 | custom | mug | rustic shallow bowl | 3/3 | 100% |
 
-## 4. 분석
+## 4. 스크린샷
 
-### 4.1 핵심 발견
+### 4.1 그룹 A: ProcTHOR + Thor (베이스라인)
+
+**Salt Shaker → Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/A_salt_shaker_PASS_first.png) | ![](report_screenshots/A_salt_shaker_PASS_last.png) |
+
+**Mug → Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/A_mug_PASS_first.png) | ![](report_screenshots/A_mug_PASS_last.png) |
+
+**Candle → Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/A_candle_PASS_first.png) | ![](report_screenshots/A_candle_PASS_last.png) |
+
+**Egg → Bowl (실패)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/A_egg_FAIL_first.png) | ![](report_screenshots/A_egg_FAIL_last.png) |
+
+### 4.2 그룹 B: ProcTHOR + Objaverse (오브젝트 일반화)
+
+**Salt Shaker → Rustic Shallow Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/B_salt_shaker_objaverse_PASS_first.png) | ![](report_screenshots/B_salt_shaker_objaverse_PASS_last.png) |
+
+### 4.3 그룹 C: Custom + Thor (씬 일반화)
+
+**Salt Shaker → Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/C_salt_shaker_PASS_first.png) | ![](report_screenshots/C_salt_shaker_PASS_last.png) |
+
+**Mug → Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/C_mug_PASS_first.png) | ![](report_screenshots/C_mug_PASS_last.png) |
+
+**Egg → Bowl (실패)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/C_egg_FAIL_first.png) | ![](report_screenshots/C_egg_FAIL_last.png) |
+
+### 4.4 그룹 D: Custom + Objaverse (씬+오브젝트 일반화)
+
+**Salt Shaker → Rustic Shallow Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/D_salt_shaker_objaverse_PASS_first.png) | ![](report_screenshots/D_salt_shaker_objaverse_PASS_last.png) |
+
+**Mug → Rustic Shallow Bowl (성공)**
+| 시작 | 종료 |
+|------|------|
+| ![](report_screenshots/D_mug_objaverse_PASS_first.png) | ![](report_screenshots/D_mug_objaverse_PASS_last.png) |
+
+## 5. 분석
+
+### 5.1 핵심 발견
 
 1. **씬 일반화 성공**: 커스텀 씬(93.8%)이 학습 씬(77.3%)보다 오히려 높은 성공률. 단순한 씬이 시각적 혼란 요소가 적어 정책 성능에 유리할 수 있음.
 
@@ -99,27 +159,27 @@ MolmoBot-DROID 정책이 학습 분포(ProcTHOR 씬 + Thor 오브젝트) 밖의 
 
 4. **Salt shaker 변동**: ProcTHOR에서 67% (2/3) — 동일 조건에서도 시행마다 결과가 다름. 정책의 stochastic 특성 또는 미세한 초기 조건 차이에 의한 것.
 
-### 4.2 제한사항
+### 5.2 제한사항
 
 - **성공 판정 기준**: "물체가 1cm 이상 들어올려지고 2cm 이상 이동" — 실제로 receptacle에 넣었는지는 확인하지 않음. 향후 개선 필요.
 - **반복 횟수**: 조합당 1-3회로 통계적 신뢰도 제한적.
 - **일부 그룹 미완료**: 그룹 B, C, D의 일부 조합이 아직 실행되지 않음.
 
-### 4.3 향후 실험 제안
+### 5.3 향후 실험 제안
 
 1. **오브젝트 위치 변화 테스트** (구현 완료, 실행 대기): 같은 오브젝트를 다른 위치에 놓고 성공률 비교
 2. **카메라 위치 변경 테스트**: exo 카메라 시점을 변경하여 robustness 확인
 3. **Clutter 추가 테스트**: 책상 위 방해 물체 추가
 4. **성공 판정 개선**: 물체가 receptacle 내부에 있는지 정확히 판정
 
-## 5. 결론
+## 6. 결론
 
 MolmoBot-DROID 정책은 **새로운 씬과 새로운 오브젝트에 대해 높은 일반화 성능**을 보여줌:
 - 학습하지 않은 커스텀 씬에서 93.8% 성공률
 - 학습하지 않은 Objaverse 오브젝트에서 100% 성공률
 - 단, **오브젝트 형상**(예: 달걀)이 grasping 성능에 큰 영향을 미침
 
-## 6. 실행 환경
+## 7. 실행 환경
 
 - **GPU**: NVIDIA A6000 48GB
 - **Python**: 3.11
@@ -128,7 +188,7 @@ MolmoBot-DROID 정책은 **새로운 씬과 새로운 오브젝트에 대해 높
 - **정책 스텝 간격**: 66ms (15Hz)
 - **렌더링**: EGL (headless)
 
-## 7. 재현 방법
+## 8. 재현 방법
 
 ```bash
 # 설치
