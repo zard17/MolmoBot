@@ -12,6 +12,9 @@
 | `results_main/` | A/B/C/D 그룹 평가 결과 (44 영상, CSV, 레포트) |
 | `results_position/` | 위치 변화 robustness 테스트 (10 영상) |
 | `results_early_exploratory/` | 초기 탐색 실험 — mug→cup, bookcase, apple 실패 분석 (12 영상) |
+| `results_camera_position/` | 카메라 위치 변화 테스트 (6 영상, 100%) |
+| `results_camera_angle/` | 카메라 각도 변화 테스트 (4 영상, 100%) |
+| `results_camera_fov/` | 카메라 FOV 변화 테스트 (3 영상, 100%) |
 | `report_screenshots/` | 레포트용 프레임 스크린샷 |
 | `benchmark.json` | 벤치마크 에피소드 정의 |
 | `batch_config.json` | 배치 실행 설정 |
