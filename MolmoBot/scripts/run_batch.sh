@@ -17,8 +17,13 @@ source .venv/bin/activate
 # Pull latest
 git pull
 
-# Initialize asset cache (needed after fresh restart)
-python -c "from molmo_spaces.molmo_spaces_constants import get_resource_manager; get_resource_manager(force_post_setup=True)"
+# Initialize asset cache (only on first run or after fresh restart)
+if ! python -c "from molmo_spaces.utils.lazy_loading_utils import install_uid; install_uid('Bowl_3')" 2>/dev/null; then
+    echo "Initializing asset cache..."
+    python -c "from molmo_spaces.molmo_spaces_constants import get_resource_manager; get_resource_manager(force_post_setup=True)"
+else
+    echo "Asset cache OK"
+fi
 
 # Generate config
 python scripts/run_batch_eval.py --generate-config
