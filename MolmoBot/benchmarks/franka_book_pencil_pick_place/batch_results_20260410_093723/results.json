@@ -1,0 +1,32 @@
+[
+  {
+    "scene": "custom",
+    "pickup": "Salt_Shaker_1",
+    "receptacle": "Bowl_3",
+    "prompt": "pick up the salt shaker and place it in the bowl",
+    "group": "G: Camera variation (custom, fov_narrow)",
+    "trial": 0,
+    "success": true,
+    "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260410_093723/ep001_custom_salt shaker_bowl_t0.mp4"
+  },
+  {
+    "scene": "custom",
+    "pickup": "Salt_Shaker_1",
+    "receptacle": "Bowl_3",
+    "prompt": "pick up the salt shaker and place it in the bowl",
+    "group": "G: Camera variation (custom, fov_wide)",
+    "trial": 0,
+    "success": true,
+    "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260410_093723/ep002_custom_salt shaker_bowl_t0.mp4"
+  },
+  {
+    "scene": "custom",
+    "pickup": "Salt_Shaker_1",
+    "receptacle": "Bowl_3",
+    "prompt": "pick up the salt shaker and place it in the bowl",
+    "group": "G: Camera variation (custom, fov_very_wide)",
+    "trial": 0,
+    "success": true,
+    "video_path": "/workspace/MolmoBot/MolmoBot/benchmarks/franka_book_pencil_pick_place/batch_results_20260410_093723/ep003_custom_salt shaker_bowl_t0.mp4"
+  }
+]
