@@ -478,6 +478,8 @@ def main():
     parser.add_argument("--config", type=str, help="Path to batch config JSON")
     parser.add_argument("--generate-config", action="store_true", help="Generate default config and exit")
     parser.add_argument("--task_horizon_override", type=int, default=None)
+    parser.add_argument("--start", type=int, default=1, help="Start from episode N (1-indexed)")
+    parser.add_argument("--end", type=int, default=None, help="End at episode N (inclusive)")
     parser.add_argument("--output_dir", type=str, default=None)
     args = parser.parse_args()
 
@@ -537,6 +539,10 @@ def main():
     print("Policy loaded.\n", flush=True)
 
     # Run episodes
+    start_ep = args.start
+    end_ep = args.end or total_episodes
+    print(f"Running episodes {start_ep} to {end_ep} (of {total_episodes})\n", flush=True)
+
     results = []
     episode_num = 0
     for task_idx, task in enumerate(tasks):
@@ -551,6 +557,10 @@ def main():
 
         for trial in range(repeats):
             episode_num += 1
+
+            if episode_num < start_ep or episode_num > end_ep:
+                continue
+
             episode_id = f"ep{episode_num:03d}_{scene_type}_{pickup_name}_{receptacle_name}_t{trial}"
             print(f"[{episode_num}/{total_episodes}] [{scene_type}] {pickup_name} → {receptacle_name} (trial {trial+1}/{repeats})", flush=True)
 
