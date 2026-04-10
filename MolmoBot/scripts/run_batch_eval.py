@@ -311,7 +311,12 @@ def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_
     scene_option.sitegroup = 0
 
     # Record initial pickup position (after settling)
-    pickup_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pickup_object/" + pickup_body_name)
+    lookup_name = "pickup_object/" + pickup_body_name
+    pickup_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, lookup_name)
+    if pickup_body_id < 0:
+        print(f"    WARNING: body '{lookup_name}' not found (id={pickup_body_id})", flush=True)
+    else:
+        print(f"    Tracking body '{lookup_name}' (id={pickup_body_id}) at {data.xpos[pickup_body_id].tolist()}", flush=True)
     initial_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
     max_displacement = 0.0
     max_lift = 0.0
