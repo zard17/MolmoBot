@@ -98,16 +98,17 @@ def generate_default_config():
         "default": None,  # uses PROCTHOR_PICKUP_POS [6.5, 10.1]
         "left":    [6.4, 10.15, 1.0],  # ~0.55m, slight left
         "right":   [6.9, 10.05, 1.0],  # ~0.32m, slight right
-        "close":   [6.7, 10.0, 1.0],   # ~0.27m, closer
+        "close":   [6.6, 10.1, 1.0],   # ~0.40m, closer (was 6.7,10.0 but fell off edge)
         "far":     [6.4, 10.25, 1.0],  # ~0.60m, further but reachable
     }
     # Custom: desk area near robot [0, 0], desk center [0.75, 0.25]
+    # Bowl_3 receptacle is at [0.65, 0.35] — keep pickup away from it
     custom_positions = {
         "default": None,
         "left":    [0.45, 0.30, CUSTOM_DESK_TOP_Z + 0.04],  # left side of desk
         "right":   [0.65, 0.15, CUSTOM_DESK_TOP_Z + 0.04],  # right side
         "close":   [0.40, 0.20, CUSTOM_DESK_TOP_Z + 0.04],  # closer to robot
-        "far":     [0.70, 0.35, CUSTOM_DESK_TOP_Z + 0.04],  # far edge
+        "far":     [0.55, 0.40, CUSTOM_DESK_TOP_Z + 0.04],  # far but clear of bowl
     }
 
     tasks = []
