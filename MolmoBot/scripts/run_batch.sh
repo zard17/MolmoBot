@@ -12,6 +12,15 @@ cd /workspace/MolmoBot/MolmoBot
 # Environment
 export MUJOCO_GL=egl
 export PYOPENGL_PLATFORM=egl
+
+# Use /workspace for cache so it persists across pod restarts
+export MLSPACES_ASSETS_DIR=/workspace/.cache/molmo-spaces-resources
+mkdir -p $MLSPACES_ASSETS_DIR
+
+# Symlink ~/.cache for other tools that use it
+mkdir -p ~/.cache
+ln -sfn /workspace/.cache/molmo-spaces-resources ~/.cache/molmo-spaces-resources
+
 source .venv/bin/activate
 
 # Pull latest
