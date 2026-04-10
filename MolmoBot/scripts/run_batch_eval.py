@@ -305,6 +305,8 @@ def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_
     # Record initial pickup position
     pickup_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "pickup_object/" + pickup_body_name)
     initial_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
+    max_displacement = 0.0
+    max_lift = 0.0
 
     # Rollout
     frames = []
@@ -331,13 +333,22 @@ def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_
         nstep = max(1, POLICY_DT_MS // max(1, round(model.opt.timestep * 1000)))
         mujoco.mj_step(model, data, nstep=nstep)
 
+        # Track pickup object movement throughout episode
+        if pickup_body_id >= 0:
+            current_pos = data.xpos[pickup_body_id]
+            disp = np.linalg.norm(current_pos - initial_pickup_pos)
+            lift = current_pos[2] - initial_pickup_pos[2]
+            max_displacement = max(max_displacement, disp)
+            max_lift = max(max_lift, lift)
+
         if (step + 1) % 50 == 0:
             print(f"    Step {step + 1}/{task_horizon}", flush=True)
 
-    # Success heuristic: pickup object displaced significantly from start
-    final_pickup_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
-    displacement = np.linalg.norm(final_pickup_pos - initial_pickup_pos)
-    success = bool(displacement > 0.02)
+    # Success heuristic: object was picked up (lifted >1cm) and moved (>2cm) at any point
+    success = bool(max_lift > 0.01 and max_displacement > 0.02)
+    final_pos = data.xpos[pickup_body_id].copy() if pickup_body_id >= 0 else np.zeros(3)
+    final_disp = np.linalg.norm(final_pos - initial_pickup_pos)
+    print(f"    max_lift={max_lift:.3f}m, max_disp={max_displacement:.3f}m, final_disp={final_disp:.3f}m", flush=True)
 
     # Save video
     video_path = output_dir / f"{episode_id}.mp4"
