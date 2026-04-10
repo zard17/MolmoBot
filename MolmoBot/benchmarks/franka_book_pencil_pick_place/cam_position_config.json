@@ -1,0 +1,12 @@
+{
+  "task_horizon": 300,
+  "repeats": 1,
+  "tasks": [
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_offset": [0.15, 0.57, 0.66], "cam_label": "x+5cm"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_offset": [0.05, 0.57, 0.66], "cam_label": "x-5cm"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_offset": [0.1, 0.67, 0.66], "cam_label": "y+10cm"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_offset": [0.1, 0.47, 0.66], "cam_label": "y-10cm"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_offset": [0.1, 0.57, 0.76], "cam_label": "z+10cm"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_offset": [0.1, 0.57, 0.56], "cam_label": "z-10cm"}
+  ]
+}

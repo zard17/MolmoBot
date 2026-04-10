@@ -1,0 +1,9 @@
+{
+  "task_horizon": 300,
+  "repeats": 1,
+  "tasks": [
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_fov": 55.0, "cam_label": "fov_narrow"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_fov": 85.0, "cam_label": "fov_wide"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_fov": 95.0, "cam_label": "fov_very_wide"}
+  ]
+}

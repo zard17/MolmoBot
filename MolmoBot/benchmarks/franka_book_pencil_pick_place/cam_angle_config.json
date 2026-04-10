@@ -1,0 +1,10 @@
+{
+  "task_horizon": 300,
+  "repeats": 1,
+  "tasks": [
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_quat": [-0.3511, -0.1553, 0.3533, 0.8531], "cam_label": "pitch+10"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_quat": [-0.3727, -0.092, 0.4961, 0.7788], "cam_label": "pitch-10"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_quat": [-0.4333, -0.1608, 0.4139, 0.7843], "cam_label": "yaw+10"},
+    {"scene": "custom", "pickup": "Salt_Shaker_1", "receptacle": "Bowl_3", "exo_camera_quat": [-0.2905, -0.0865, 0.4355, 0.8476], "cam_label": "yaw-10"}
+  ]
+}

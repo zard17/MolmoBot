@@ -194,7 +194,9 @@ def get_object_type(uid_str: str) -> str:
     return "thor"
 
 
-def get_group_name(scene: str, receptacle: str, pos_label: str = None) -> str:
+def get_group_name(scene: str, receptacle: str, pos_label: str = None, cam_label: str = None) -> str:
+    if cam_label:
+        return f"G: Camera variation ({scene}, {cam_label})"
     if pos_label:
         return f"E: Position variation ({scene}, {pos_label})"
     obj_type = get_object_type(receptacle)
@@ -223,7 +225,8 @@ def load_object(uid_str: str) -> Path:
         return install_uid(uid_str)
 
 
-def build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None):
+def build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None,
+                         exo_offset=None, exo_quat=None, exo_fov=None):
     """Build ProcTHOR val house 0 scene with swapped objects."""
     houses = get_procthor_10k_houses(split="val")
     house_xml = houses["val"][0]["base"]
@@ -242,7 +245,9 @@ def build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=No
 
     spec.camera(robot_config.robot_namespace + "gripper/wrist_camera").resolution = [RENDER_WIDTH, RENDER_HEIGHT]
     spec.body(robot_config.robot_namespace + "fr3_link0").add_camera(
-        pos=PROCTHOR_EXO_POS, quat=PROCTHOR_EXO_QUAT, fovy=PROCTHOR_EXO_FOVY,
+        pos=exo_offset or PROCTHOR_EXO_POS,
+        quat=exo_quat or PROCTHOR_EXO_QUAT,
+        fovy=exo_fov or PROCTHOR_EXO_FOVY,
         resolution=[RENDER_WIDTH, RENDER_HEIGHT], name="robot_0/exo_camera_1",
     )
 
@@ -268,7 +273,8 @@ def build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=No
     return spec, pickup_body_orig_name
 
 
-def build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None):
+def build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None,
+                       exo_offset=None, exo_quat=None, exo_fov=None):
     """Build custom scene with primitive desk + bookcase."""
     spec = mujoco.MjSpec.from_file(str(HOUSE_BASE_XML))
 
@@ -301,8 +307,10 @@ def build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None
         prefix=robot_config.robot_namespace, pos=[0, 0], quat=[1, 0, 0, 0])
     spec.camera(robot_config.robot_namespace + "gripper/wrist_camera").resolution = [RENDER_WIDTH, RENDER_HEIGHT]
     spec.body(robot_config.robot_namespace + "fr3_link0").add_camera(
-        pos=[0.1, 0.57, 0.66], quat=[-0.3633, -0.1241, 0.4263, 0.8191],
-        fovy=71.0, resolution=[RENDER_WIDTH, RENDER_HEIGHT], name="robot_0/exo_camera_1")
+        pos=exo_offset or [0.1, 0.57, 0.66],
+        quat=exo_quat or [-0.3633, -0.1241, 0.4263, 0.8191],
+        fovy=exo_fov or 71.0,
+        resolution=[RENDER_WIDTH, RENDER_HEIGHT], name="robot_0/exo_camera_1")
 
     # Pickup on desk
     pickup_xml = load_object(pickup_uid)
@@ -328,12 +336,13 @@ def build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=None
     return spec, pickup_body_orig_name
 
 
-def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_uid, prompt, task_horizon, output_dir, episode_id, pickup_pos=None):
+def run_single_episode(robot_config, policy, scene_type, pickup_uid, receptacle_uid, prompt, task_horizon, output_dir, episode_id, pickup_pos=None, exo_offset=None, exo_quat=None, exo_fov=None):
     """Run a single episode. Returns success (bool) and video path."""
+    cam_kwargs = dict(exo_offset=exo_offset, exo_quat=exo_quat, exo_fov=exo_fov)
     if scene_type == "procthor":
-        spec, pickup_body_name = build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=pickup_pos)
+        spec, pickup_body_name = build_procthor_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=pickup_pos, **cam_kwargs)
     else:
-        spec, pickup_body_name = build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=pickup_pos)
+        spec, pickup_body_name = build_custom_scene(robot_config, pickup_uid, receptacle_uid, pickup_pos=pickup_pos, **cam_kwargs)
 
     model = spec.compile()
     data = mujoco.MjData(model)
@@ -622,8 +631,9 @@ def main():
         pickup_name = get_object_name(pickup)
         receptacle_name = get_object_name(receptacle)
         pos_label = task.get("pos_label")
+        cam_label = task.get("cam_label")
         prompt = task.get("prompt") or f"pick up the {pickup_name} and place it in the {receptacle_name}"
-        group = get_group_name(scene_type, receptacle, pos_label=pos_label)
+        group = get_group_name(scene_type, receptacle, pos_label=pos_label, cam_label=cam_label)
 
         for trial in range(repeats):
             episode_num += 1
@@ -636,11 +646,15 @@ def main():
 
             try:
                 pickup_pos = task.get("pickup_pos")
+                exo_offset = task.get("exo_camera_offset")
+                exo_quat = task.get("exo_camera_quat")
+                exo_fov = task.get("exo_camera_fov")
                 success, video_path = run_single_episode(
                     robot_config, policy, scene_type,
                     pickup, receptacle, prompt,
                     task_horizon, output_dir, episode_id,
                     pickup_pos=pickup_pos,
+                    exo_offset=exo_offset, exo_quat=exo_quat, exo_fov=exo_fov,
                 )
                 status = "PASS" if success else "FAIL"
                 print(f"  → {status}", flush=True)
