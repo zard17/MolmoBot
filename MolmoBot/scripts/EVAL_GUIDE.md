@@ -110,10 +110,14 @@ python -c "from huggingface_hub import snapshot_download; print(snapshot_downloa
 Add to your `.bashrc` or set before each run:
 
 ```bash
-export MLSPACES_USE_HF=1          # Use HuggingFace instead of R2 for assets
+export MLSPACES_USE_HF=1          # Required — molmo_spaces contacts R2 at import time, even for serve_molmo.py
 export MUJOCO_GL=egl              # Headless OpenGL rendering (no display)
 export PYOPENGL_PLATFORM=egl      # Same for PyOpenGL
 ```
+
+> **Why is `MLSPACES_USE_HF=1` needed even for `serve_molmo.py --local-path`?**
+> `molmo_spaces` calls `get_resource_manager()` at module level (via `texture.py` import chain),
+> which tries to contact R2 regardless of whether you need assets. Without this flag, you get a 403 error on SPACE.
 
 ### Run Batch Evaluation
 
