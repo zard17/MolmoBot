@@ -167,7 +167,7 @@ def get_default_config():
         })
 
     config = {
-        "task_horizon": 600,
+        "task_horizon": 300,
         "repeats": 3,
         "tasks": tasks,
     }

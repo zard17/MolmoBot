@@ -99,7 +99,7 @@ uv sync --extra eval
 source .venv/bin/activate
 
 # HuggingFace authentication (required — R2 is blocked)
-huggingface-cli login
+huggingface-cli login   # or: hf auth login
 
 # Download checkpoint
 python -c "from huggingface_hub import snapshot_download; print(snapshot_download('allenai/MolmoBot-DROID'))"
