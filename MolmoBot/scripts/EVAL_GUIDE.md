@@ -87,17 +87,88 @@ Results are saved to `benchmarks/franka_book_pencil_pick_place/batch_results_<ti
 
 ---
 
-## RunPod GPU Setup
+## SPACE GPU Server Setup
 
-For headless GPU execution on RunPod:
+SPACE has R2 downloads blocked, no display, and requires HuggingFace auth for model/asset downloads.
+
+### First-time Setup
+
+```bash
+cd MolmoBot/MolmoBot
+uv sync --extra eval
+source .venv/bin/activate
+
+# HuggingFace authentication (required — R2 is blocked)
+huggingface-cli login
+
+# Download checkpoint
+python -c "from huggingface_hub import snapshot_download; print(snapshot_download('allenai/MolmoBot-DROID'))"
+```
+
+### Environment Variables
+
+Add to your `.bashrc` or set before each run:
+
+```bash
+export MLSPACES_USE_HF=1          # Use HuggingFace instead of R2 for assets
+export MUJOCO_GL=egl              # Headless OpenGL rendering (no display)
+export PYOPENGL_PLATFORM=egl      # Same for PyOpenGL
+```
+
+### Run Batch Evaluation
+
+```bash
+source .venv/bin/activate
+python scripts/run_batch_eval.py --checkpoint_path <path>
+
+# Quick pipeline test (10 steps per episode)
+python scripts/run_batch_eval.py --checkpoint_path <path> --task_horizon_override 10
+```
+
+### RunPod Alternative
+
+For RunPod GPU execution, `run_batch.sh` handles all setup automatically:
 
 ```bash
 bash scripts/run_batch.sh
-# Pass extra args:
-bash scripts/run_batch.sh --task_horizon_override 10
+bash scripts/run_batch.sh --task_horizon_override 10  # quick test
 ```
 
-The script handles: EGL rendering setup, asset cache management, HF checkpoint download, and config generation.
+---
+
+## Local Machine with MuJoCo Viewer
+
+For team members with a local GPU (20GB+ VRAM) who want real-time visualization:
+
+### Option 1: run_eval_with_glfw.py (single benchmark + viewer)
+
+```bash
+# Linux
+python run_eval_with_glfw.py \
+    --checkpoint_path <path> \
+    --benchmark_path ./benchmarks/minimal_benchmark \
+    --eval_config_cls olmo.eval.configure_molmo_spaces:FrankaState8ClampAbsPosConfig \
+    --task_horizon 600 \
+    --output_dir ./eval_results \
+    --enable_viewer
+
+# macOS (requires mjpython)
+mjpython run_eval_with_glfw.py --checkpoint_path <path> ... --enable_viewer
+```
+
+### Option 2: serve_molmo.py + robot_simulation_client.py (remote GPU + local viewer)
+
+Run inference on a GPU server, view simulation locally. Best when the GPU is on a remote machine (e.g., SPACE) and you want the viewer on your laptop.
+
+```bash
+# Terminal 1 — GPU server (e.g., SPACE)
+python launch_scripts/serve_molmo.py --hf-repo allenai/MolmoBot-DROID --action-type joint_pos
+
+# Terminal 2 — local machine (with display)
+python robot_simulation_client.py --enable-viewer --task "pick up the book"
+```
+
+> **Note**: `robot_simulation_client.py` will be added in a future PR. The upstream `serve_molmo.py` is already available.
 
 ---
 
@@ -114,15 +185,6 @@ The script handles: EGL rendering setup, asset cache management, HF checkpoint d
 ```bash
 export JAX_PLATFORMS=cpu
 export CUDA_VISIBLE_DEVICES=""
-python scripts/run_batch_eval.py --checkpoint_path <path>
-```
-
-### HuggingFace Resource Fallback
-
-If R2 downloads are blocked in your environment:
-
-```bash
-export MLSPACES_USE_HF=1
 python scripts/run_batch_eval.py --checkpoint_path <path>
 ```
 
@@ -234,7 +296,9 @@ Safe to ignore. `warp` is an optional GPU optimization module.
 
 | File | Description |
 |------|-------------|
-| `scripts/run_batch_eval.py` | Batch evaluation with generalization report |
+| `scripts/run_batch_eval.py` | Batch evaluation with generalization report (headless) |
 | `scripts/run_batch.sh` | RunPod GPU execution wrapper |
+| `run_eval_with_glfw.py` | Single benchmark with optional MuJoCo viewer |
 | `launch_scripts/run_eval.py` | Upstream single-benchmark evaluation (with molmo_spaces) |
-| `launch_scripts/serve_molmo.py` | Upstream WebSocket policy server |
+| `launch_scripts/serve_molmo.py` | Upstream WebSocket policy server (for remote GPU) |
+| `robot_simulation_client.py` | MuJoCo simulation client with viewer (connects to serve_molmo.py) |
