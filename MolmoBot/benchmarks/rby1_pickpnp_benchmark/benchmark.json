@@ -1,0 +1,597 @@
+[
+  {
+    "source": {
+      "h5_file": "",
+      "traj_key": "",
+      "episode_length": 50,
+      "camera_system_class": "RBY1GoProD455CameraSystem",
+      "source_data_date": "2026-04-15",
+      "benchmark_created_date": "2026-04-15"
+    },
+    "house_index": 321,
+    "scene_dataset": "ithor",
+    "data_split": "val",
+    "seed": 0,
+    "robot": {
+      "robot_name": "rby1m",
+      "init_qpos": {
+        "base": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.6
+        ],
+        "left_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "left_gripper": [
+          -0.05
+        ],
+        "right_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "right_gripper": [
+          -0.05
+        ],
+        "torso": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "img_resolution": [
+      1024,
+      576
+    ],
+    "cameras": [],
+    "scene_modifications": {
+      "added_objects": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml"
+      },
+      "object_poses": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": [
+          1.7,
+          2.0,
+          1.0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "task": {
+      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "robot_base_pose": [
+        2.0,
+        2.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pickup_obj_name": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
+      "pickup_obj_start_pose": [
+        1.7,
+        2.0,
+        1.0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "pickup_obj_goal_pose": [
+        1.7,
+        2.0,
+        1.2,
+        0,
+        0,
+        0,
+        1
+      ],
+      "succ_pos_threshold": 0.05
+    },
+    "language": {
+      "task_description": "Pick up the book",
+      "referral_expressions": {
+        "pickup_obj_name": "book"
+      }
+    }
+  },
+  {
+    "source": {
+      "h5_file": "",
+      "traj_key": "",
+      "episode_length": 50,
+      "camera_system_class": "RBY1GoProD455CameraSystem",
+      "source_data_date": "2026-04-15",
+      "benchmark_created_date": "2026-04-15"
+    },
+    "house_index": 321,
+    "scene_dataset": "ithor",
+    "data_split": "val",
+    "seed": 1,
+    "robot": {
+      "robot_name": "rby1m",
+      "init_qpos": {
+        "base": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.6
+        ],
+        "left_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "left_gripper": [
+          -0.05
+        ],
+        "right_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "right_gripper": [
+          -0.05
+        ],
+        "torso": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "img_resolution": [
+      1024,
+      576
+    ],
+    "cameras": [],
+    "scene_modifications": {
+      "added_objects": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml"
+      },
+      "object_poses": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": [
+          1.65,
+          2.15,
+          1.0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "task": {
+      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "robot_base_pose": [
+        2.0,
+        2.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pickup_obj_name": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
+      "pickup_obj_start_pose": [
+        1.65,
+        2.15,
+        1.0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "pickup_obj_goal_pose": [
+        1.65,
+        2.15,
+        1.2,
+        0,
+        0,
+        0,
+        1
+      ],
+      "succ_pos_threshold": 0.05
+    },
+    "language": {
+      "task_description": "Pick up the book",
+      "referral_expressions": {
+        "pickup_obj_name": "book"
+      }
+    }
+  },
+  {
+    "source": {
+      "h5_file": "",
+      "traj_key": "",
+      "episode_length": 50,
+      "camera_system_class": "RBY1GoProD455CameraSystem",
+      "source_data_date": "2026-04-15",
+      "benchmark_created_date": "2026-04-15"
+    },
+    "house_index": 321,
+    "scene_dataset": "ithor",
+    "data_split": "val",
+    "seed": 2,
+    "robot": {
+      "robot_name": "rby1m",
+      "init_qpos": {
+        "base": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.6
+        ],
+        "left_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "left_gripper": [
+          -0.05
+        ],
+        "right_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "right_gripper": [
+          -0.05
+        ],
+        "torso": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "img_resolution": [
+      1024,
+      576
+    ],
+    "cameras": [],
+    "scene_modifications": {
+      "added_objects": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml"
+      },
+      "object_poses": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": [
+          1.65,
+          1.85,
+          1.0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "task": {
+      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "robot_base_pose": [
+        2.0,
+        2.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pickup_obj_name": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
+      "pickup_obj_start_pose": [
+        1.65,
+        1.85,
+        1.0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "pickup_obj_goal_pose": [
+        1.65,
+        1.85,
+        1.2,
+        0,
+        0,
+        0,
+        1
+      ],
+      "succ_pos_threshold": 0.05
+    },
+    "language": {
+      "task_description": "Pick up the book",
+      "referral_expressions": {
+        "pickup_obj_name": "book"
+      }
+    }
+  },
+  {
+    "source": {
+      "h5_file": "",
+      "traj_key": "",
+      "episode_length": 50,
+      "camera_system_class": "RBY1GoProD455CameraSystem",
+      "source_data_date": "2026-04-15",
+      "benchmark_created_date": "2026-04-15"
+    },
+    "house_index": 321,
+    "scene_dataset": "ithor",
+    "data_split": "val",
+    "seed": 3,
+    "robot": {
+      "robot_name": "rby1m",
+      "init_qpos": {
+        "base": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.6
+        ],
+        "left_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "left_gripper": [
+          -0.05
+        ],
+        "right_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "right_gripper": [
+          -0.05
+        ],
+        "torso": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "img_resolution": [
+      1024,
+      576
+    ],
+    "cameras": [],
+    "scene_modifications": {
+      "added_objects": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml"
+      },
+      "object_poses": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": [
+          1.6,
+          2.0,
+          1.0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "task": {
+      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "robot_base_pose": [
+        2.0,
+        2.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pickup_obj_name": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
+      "pickup_obj_start_pose": [
+        1.6,
+        2.0,
+        1.0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "pickup_obj_goal_pose": [
+        1.6,
+        2.0,
+        1.2,
+        0,
+        0,
+        0,
+        1
+      ],
+      "succ_pos_threshold": 0.05
+    },
+    "language": {
+      "task_description": "Pick up the book",
+      "referral_expressions": {
+        "pickup_obj_name": "book"
+      }
+    }
+  },
+  {
+    "source": {
+      "h5_file": "",
+      "traj_key": "",
+      "episode_length": 50,
+      "camera_system_class": "RBY1GoProD455CameraSystem",
+      "source_data_date": "2026-04-15",
+      "benchmark_created_date": "2026-04-15"
+    },
+    "house_index": 321,
+    "scene_dataset": "ithor",
+    "data_split": "val",
+    "seed": 4,
+    "robot": {
+      "robot_name": "rby1m",
+      "init_qpos": {
+        "base": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.6
+        ],
+        "left_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "left_gripper": [
+          -0.05
+        ],
+        "right_arm": [
+          0.5,
+          0.0,
+          0.0,
+          -2.3,
+          0.0,
+          -0.5,
+          0.0
+        ],
+        "right_gripper": [
+          -0.05
+        ],
+        "torso": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "img_resolution": [
+      1024,
+      576
+    ],
+    "cameras": [],
+    "scene_modifications": {
+      "added_objects": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml"
+      },
+      "object_poses": {
+        "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0": [
+          1.55,
+          2.1,
+          1.0,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "task": {
+      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "robot_base_pose": [
+        2.0,
+        2.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pickup_obj_name": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
+      "pickup_obj_start_pose": [
+        1.55,
+        2.1,
+        1.0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "pickup_obj_goal_pose": [
+        1.55,
+        2.1,
+        1.2,
+        0,
+        0,
+        0,
+        1
+      ],
+      "succ_pos_threshold": 0.05
+    },
+    "language": {
+      "task_description": "Pick up the book",
+      "referral_expressions": {
+        "pickup_obj_name": "book"
+      }
+    }
+  }
+]

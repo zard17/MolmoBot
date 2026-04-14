@@ -917,3 +917,50 @@ class MolmoBotRBY1PickPnPEvalConfig(MolmoBotRBY1EvalConfig):
         super().model_post_init(__context)
         # Model outputs 1D torso action → use "height" mode (scalar → 6D joint mapping)
         self.robot_config.command_mode["torso"] = "height"
+
+
+# ── Frozen Base Variants (for mobile base ablation) ─────────────────────
+
+
+class MolmoBotRBY1PickPnPFrozenBasePolicy(MolmoBotRBY1MultitaskPolicy):
+    """Pick+PnP policy that zeros out base actions after prediction.
+
+    The model still predicts all actions (including base), but base deltas
+    are zeroed before being sent to the simulator. This tests performance
+    when the mobile base is locked in place.
+    """
+
+    def __init__(self, config, task_type):
+        super().__init__(config, task_type)
+        self.freeze_base = getattr(config.policy_config, "freeze_base", False)
+
+    def _populate_action_buffer(self, observation):
+        super()._populate_action_buffer(observation)
+        if self.freeze_base:
+            for action in self.action_buffer:
+                if "base" in action:
+                    action["base"] = np.zeros_like(action["base"])
+
+
+class MolmoBotRBY1PickPnPFrozenBasePolicyConfig(MolmoBotRBY1PickPnPPolicyConfig):
+    """Pick+PnP policy config with frozen (zeroed) base actions."""
+
+    freeze_base: bool = True
+
+    def model_post_init(self, __context) -> None:
+        if self.policy_cls is None:
+            from olmo.eval.configure_molmo_spaces import MolmoBotRBY1PickPnPFrozenBasePolicy
+
+            object.__setattr__(self, "policy_cls", MolmoBotRBY1PickPnPFrozenBasePolicy)
+
+
+class MolmoBotRBY1PickPnPFrozenBaseEvalConfig(MolmoBotRBY1EvalConfig):
+    """Eval config for RBY1 pick+pnp with frozen (locked) mobile base."""
+
+    policy_config: MolmoBotRBY1PickPnPFrozenBasePolicyConfig = MolmoBotRBY1PickPnPFrozenBasePolicyConfig()
+    camera_config: RBY1GoProD455CameraSystem = RBY1GoProD455CameraSystem()
+    task_horizon: int = 400
+
+    def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)
+        self.robot_config.command_mode["torso"] = "height"
