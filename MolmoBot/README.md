@@ -260,3 +260,69 @@ python launch_scripts/run_eval.py \
 Other released RBY1 eval configs are:
 - `olmo.eval.configure_molmo_spaces:MolmoBotRBY1DoorPlusOpenEvalConfig`
 - `olmo.eval.configure_molmo_spaces:MolmoBotRBY1PickPnPEvalConfig`
+
+## RBY1 Frozen Base Test
+
+Compare RBY1 pick&place performance with the mobile base active (default) vs frozen (base actions zeroed). This tests how well the model performs when deployed without base movement.
+
+### Quick start (RunPod)
+
+```bash
+bash scripts/run_rby1_freeze_test.sh
+```
+
+The script handles asset downloads, benchmark generation, and runs both conditions automatically.
+
+### Options
+
+```bash
+# Shorter episodes / fewer episodes for quick test
+bash scripts/run_rby1_freeze_test.sh --task_horizon 200 --num_episodes 2
+
+# Run only one condition
+bash scripts/run_rby1_freeze_test.sh --only default
+bash scripts/run_rby1_freeze_test.sh --only frozen
+
+# Custom checkpoint
+bash scripts/run_rby1_freeze_test.sh --checkpoint_path /path/to/checkpoint
+
+# Use filament renderer
+bash scripts/run_rby1_freeze_test.sh --use_filament
+```
+
+### Local run
+
+```bash
+# 1. Generate benchmark
+python generate_rby1_pickpnp_benchmark.py
+
+# 2. Run both conditions
+bash run_rby1_freeze_test.sh <checkpoint_path>
+```
+
+Results are saved to `eval_output/rby1_freeze_test/{default,frozen_base}/`.
+
+### Eval configs
+
+- `MolmoBotRBY1PickPnPEvalConfig` — default (base active)
+- `MolmoBotRBY1PickPnPFrozenBaseEvalConfig` — frozen (base actions zeroed, model still predicts all actions)
+
+# Batch Evaluation (Franka)
+
+Run batch evaluation across multiple object combinations and scene types for Franka:
+
+```bash
+# Generate default config
+python scripts/run_batch_eval.py --generate-config
+
+# Run on RunPod
+bash scripts/run_batch.sh
+
+# Or run directly
+python scripts/run_batch_eval.py --checkpoint_path <path>
+
+# Quick test (10 steps per episode)
+python scripts/run_batch_eval.py --checkpoint_path <path> --task_horizon_override 10
+```
+
+See `scripts/EVAL_GUIDE.md` for detailed setup instructions.
