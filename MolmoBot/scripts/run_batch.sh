@@ -1,0 +1,85 @@
+#!/bin/bash
+# Run batch evaluation on RunPod GPU
+#
+# Usage:
+#   bash scripts/run_batch.sh
+#   bash scripts/run_batch.sh --task_horizon_override 10  # quick test
+
+set -e
+
+cd /workspace/MolmoBot/MolmoBot
+
+# Environment
+export MUJOCO_GL=egl
+export PYOPENGL_PLATFORM=egl
+
+# Use /workspace for cache so it persists across pod restarts
+export MLSPACES_ASSETS_DIR=/workspace/.cache/molmo-spaces-resources
+mkdir -p $MLSPACES_ASSETS_DIR
+
+# Symlink ~/.cache for other tools that use it
+mkdir -p ~/.cache
+ln -sfn /workspace/.cache/molmo-spaces-resources ~/.cache/molmo-spaces-resources
+
+source .venv/bin/activate
+
+# Pull latest
+git pull
+
+# Initialize asset cache (only on first run or after fresh restart)
+mkdir -p ~/.cache/molmo-spaces-resources
+if ! python -c "from molmo_spaces.utils.lazy_loading_utils import install_uid; install_uid('Bowl_3')" 2>/dev/null; then
+    echo "Initializing asset cache..."
+    python -c "
+from molmo_spaces.molmo_spaces_constants import get_resource_manager
+rm = get_resource_manager()
+
+# Install Thor objects needed for benchmark
+for source in ['thor']:
+    try:
+        packages = rm.unindexed_archives('objects', source)
+        if packages:
+            rm.install_packages('objects', {source: packages})
+            print(f'  Installed objects/{source}')
+    except Exception as e:
+        print(f'  objects/{source}: {e}')
+
+# Install ProcTHOR val scenes
+try:
+    packages = rm.unindexed_archives('scenes', 'procthor-10k-val')
+    if packages:
+        rm.install_packages('scenes', {'procthor-10k-val': packages})
+        print('  Installed scenes/procthor-10k-val')
+except Exception as e:
+    print(f'  scenes/procthor-10k-val: {e}')
+
+# Install robots
+try:
+    packages = rm.unindexed_archives('robots', 'franka_droid')
+    if packages:
+        rm.install_packages('robots', {'franka_droid': packages})
+        print('  Installed robots/franka_droid')
+except Exception as e:
+    print(f'  robots/franka_droid: {e}')
+"
+else
+    echo "Asset cache OK"
+fi
+
+# Generate config
+python scripts/run_batch_eval.py --generate-config
+
+# Find checkpoint
+CKPT=$(ls -d ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/ 2>/dev/null | head -1)
+if [ -z "$CKPT" ]; then
+    echo "Checkpoint not found. Downloading..."
+    python -c "from huggingface_hub import snapshot_download; print(snapshot_download('allenai/MolmoBot-DROID'))"
+    CKPT=$(ls -d ~/.cache/huggingface/hub/models--allenai--MolmoBot-DROID/snapshots/*/ | head -1)
+fi
+echo "Checkpoint: $CKPT"
+
+# Run
+python -u scripts/run_batch_eval.py \
+  --checkpoint_path "$CKPT" \
+  --config benchmarks/franka_book_pencil_pick_place/batch_config.json \
+  "$@"
