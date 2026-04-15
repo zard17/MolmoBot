@@ -31,7 +31,9 @@ RBY1_INIT_QPOS = {
 ROBOT_BASE_POSE = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]  # x, y, z, qw, qx, qy, qz
 
 # Robot-mounted camera specs required by JsonEvalTaskSampler.
-# These mirror the RBY1 MJCF camera names and mount poses.
+# These mirror the RBY1 MJCF camera names and mount poses. The exocentric
+# camera is recorded for debugging only; the policy still consumes the three
+# trained RBY1 camera names from its policy config.
 RBY1_CAMERAS = [
     {
         "name": "head_camera",
@@ -62,6 +64,15 @@ RBY1_CAMERAS = [
         "camera_quaternion": [0.965926, -0.258819, 0.0, 0.0],
         "fov": 58.0,
         "record_depth": True,
+    },
+    {
+        "name": "exo_camera_1",
+        "type": "exocentric",
+        "pos": [1.4, -0.8, 1.3],
+        "forward": [-0.58, 0.72, -0.38],
+        "up": [0.0, 0.0, 1.0],
+        "fov": 65.0,
+        "record_depth": False,
     },
 ]
 

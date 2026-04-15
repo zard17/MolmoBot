@@ -312,10 +312,15 @@ bash scripts/run_rby1_freeze_test.sh --checkpoint_path /path/to/checkpoint
 - pickup object: `/Salt_Shaker_1`
 - pickup pose: `[0.55, 0.25, 0.79, 0.7071068, 0.7071068, 0, 0]`
 - goal pose: `[0.55, 0.25, 0.99, 0.7071068, 0.7071068, 0, 0]`
+- debug exocentric camera: `exo_camera_1`
 
 The custom scene XML is mirrored under
 `$MLSPACES_ASSETS_DIR/scenes/rby1-custom/custom_scene.xml` at runtime so the
 MolmoSpaces scene loader accepts it as a normal scene asset.
+
+`exo_camera_1` is a fixed third-person recording camera for visual debugging.
+It is not included in the RBY1 policy `camera_names`, so it does not change the
+model inputs.
 
 ### Gripper Mapping
 
