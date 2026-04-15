@@ -310,8 +310,10 @@ bash scripts/run_rby1_freeze_test.sh --checkpoint_path /path/to/checkpoint
 - `scene_dataset`: `rby1-custom`
 - `house_index`: `0`
 - pickup object: `/Salt_Shaker_1`
-- pickup pose: `[0.55, 0.25, 0.79, 0.7071068, 0.7071068, 0, 0]`
-- goal pose: `[0.55, 0.25, 0.99, 0.7071068, 0.7071068, 0, 0]`
+- pickup poses: a small salt-shaker reach grid near the RBY1 left-arm approach
+  path, currently centered around table coordinates `x=0.45..0.52`,
+  `y=0.25..0.35`, `z=0.79`
+- goal poses: same `x/y`, with `z=0.99`
 - debug exocentric camera: `exo_camera_1`
 
 The custom scene XML is mirrored under
@@ -344,6 +346,21 @@ saved trajectories confirm the left gripper command now closes the simulated
 fingers from about `0.10 m` inter-finger distance to near `0.0 m`, but the
 grasp-state sensor still reports no touching or holding. Video inspection shows
 the arm reaches near the desk, but the salt shaker remains on the table.
+
+The branch also includes a six-pose frozen-base diagnostic run:
+
+- `eval_output/rby1_freeze_test/frozen_base/MolmoBotRBY1PickPnPFrozenBaseEvalConfig/20260415_011321/house_0/`
+
+Summarize saved trajectories with:
+
+```bash
+python scripts/summarize_rby1_eval.py \
+  eval_output/rby1_freeze_test/frozen_base/MolmoBotRBY1PickPnPFrozenBaseEvalConfig/20260415_011321
+```
+
+That run reached closest at pose `[0.45, 0.25, 0.79]`, with minimum
+TCP-object distance `0.0953 m`; none of the six episodes touched, held, or moved
+the salt shaker.
 
 ### Eval Configs
 
