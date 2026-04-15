@@ -53,6 +53,8 @@ logger = logging.getLogger(__name__)
 class MolmoBotRBY1MultitaskPolicyConfig(MolmoBotRBY1DoorPolicyConfig):
     """Multitask config adding torso, state_spec, conditioning image support."""
 
+    freeze_base: bool = False
+
     action_move_group_names: list[str] = [
         "base", "left_arm", "left_gripper", "right_arm", "right_gripper", "torso",
     ]
@@ -104,6 +106,7 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorPolicy):
         self.state_indices = config.state_indices
         self.use_conditioning_image = config.use_conditioning_image
         self.max_conditioning_points = config.max_conditioning_points
+        self.freeze_base = config.freeze_base
         self._conditioning_image: np.ndarray | None = None
 
     def reset(self):
@@ -208,6 +211,11 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorPolicy):
                     action[group_name] = selected_action
                 start_idx += dim
             self.action_buffer.append(action)
+
+        if self.freeze_base:
+            for action in self.action_buffer:
+                if "base" in action:
+                    action["base"] = np.zeros_like(action["base"])
 
         self.buffer_index = 0
 

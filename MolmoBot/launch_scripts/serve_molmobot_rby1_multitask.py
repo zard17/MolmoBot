@@ -53,6 +53,7 @@ def main():
     source_group.add_argument("--s3_path", type=str, help="S3 path to checkpoint")
     source_group.add_argument("--checkpoint_path", type=str, help="Local checkpoint path")
     parser.add_argument("--port", type=int, default=8000, help="WebSocket server port")
+    parser.add_argument("--freeze-base", action="store_true", help="Zero out base actions (lock mobile base)")
     args = parser.parse_args()
 
     if args.checkpoint_path:
@@ -73,7 +74,7 @@ def main():
         parser.error("One of --hf_repo, --s3_path, or --checkpoint_path is required")
 
     policy_config_cls = TASK_CONFIGS[args.task_type]
-    config = policy_config_cls(checkpoint_path=checkpoint_path)
+    config = policy_config_cls(checkpoint_path=checkpoint_path, freeze_base=args.freeze_base)
     policy = MolmoBotRBY1MultitaskPolicy(config)
 
     print(f"Serving {args.task_type} policy on ws://0.0.0.0:{args.port}")
