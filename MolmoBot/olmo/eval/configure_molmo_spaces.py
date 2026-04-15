@@ -1,9 +1,11 @@
 import logging
 import json
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import torch
+from PIL import Image, ImageDraw
 from molmo_spaces.configs.abstract_exp_config import MlSpacesExpConfig
 from molmo_spaces.configs.camera_configs import RBY1GoProD455CameraSystem
 from molmo_spaces.configs.robot_configs import FrankaRobotConfig, RBY1MConfig
@@ -725,6 +727,15 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
             pc, "open_until_finger_contact", False
         )
         self._contact_force_close_remaining: dict[str, int] = {}
+        self.debug_policy_inputs: bool = getattr(pc, "debug_policy_inputs", False)
+        self.debug_policy_input_max_saves: int = getattr(
+            pc, "debug_policy_input_max_saves", 0
+        )
+        self.debug_policy_input_dirname: str = getattr(
+            pc, "debug_policy_input_dirname", "policy_input_views"
+        )
+        self._debug_policy_input_save_count = 0
+        self._logged_policy_input_views = False
 
         super().__init__(config, task_type)
 
@@ -733,6 +744,8 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         self._conditioning_image = None
         self._gripper_close_hysteresis_remaining = {}
         self._contact_force_close_remaining = {}
+        self._debug_policy_input_save_count = 0
+        self._logged_policy_input_views = False
 
     def get_state(self):
         state = super().get_state()
@@ -761,6 +774,72 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
             if state.contact_force_close_remaining is not None
             else {}
         )
+
+    def _checkpoint_max_images(self) -> int | None:
+        image_cfg = getattr(getattr(self.agent, "model_config", None), "mm_preprocessor", None)
+        image_cfg = getattr(image_cfg, "image", None)
+        return getattr(image_cfg, "max_images", None)
+
+    def _log_policy_input_views(
+        self, obs: dict, image_names: list[str], images: list[np.ndarray]
+    ) -> None:
+        if self._logged_policy_input_views:
+            return
+        self._logged_policy_input_views = True
+        logger.info(
+            "[POLICY INPUT VIEWS] camera_names=%s image_names=%s image_count=%d "
+            "image_shapes=%s checkpoint_max_images=%s exo_in_obs=%s exo_in_policy=%s",
+            self.camera_names,
+            image_names,
+            len(images),
+            [tuple(np.asarray(image).shape) for image in images],
+            self._checkpoint_max_images(),
+            "exo_camera_1" in obs,
+            "exo_camera_1" in self.camera_names,
+        )
+
+    def _save_policy_input_debug_montage(
+        self, image_names: list[str], images: list[np.ndarray]
+    ) -> None:
+        if not self.debug_policy_inputs:
+            return
+        if self._debug_policy_input_save_count >= self.debug_policy_input_max_saves:
+            return
+
+        output_dir = Path(getattr(self.config, "output_dir", "eval_output"))
+        debug_dir = output_dir / self.debug_policy_input_dirname
+        debug_dir.mkdir(parents=True, exist_ok=True)
+
+        panels = []
+        for name, image in zip(image_names, images):
+            arr = np.asarray(image)
+            if arr.dtype != np.uint8:
+                arr = np.clip(arr, 0, 255).astype(np.uint8)
+            if arr.ndim == 2:
+                arr = np.repeat(arr[..., None], 3, axis=-1)
+            if arr.shape[-1] == 4:
+                arr = arr[..., :3]
+            panel = Image.fromarray(arr)
+            panel.thumbnail((320, 180))
+            canvas = Image.new("RGB", (320, 212), "black")
+            canvas.paste(panel, ((320 - panel.width) // 2, 24))
+            draw = ImageDraw.Draw(canvas)
+            draw.text((6, 6), name, fill="white")
+            panels.append(canvas)
+
+        if not panels:
+            return
+        montage = Image.new("RGB", (320 * len(panels), 212), "black")
+        for idx, panel in enumerate(panels):
+            montage.paste(panel, (idx * 320, 0))
+
+        path = debug_dir / (
+            f"policy_input_step_{self.step_count:04d}_"
+            f"refresh_{self._debug_policy_input_save_count:02d}.jpg"
+        )
+        montage.save(path, quality=90)
+        logger.info("[POLICY INPUT VIEWS] saved debug montage: %s", path)
+        self._debug_policy_input_save_count += 1
 
     def inference_model(self, model_input) -> dict[str, np.ndarray]:
         action = super().inference_model(model_input)
@@ -802,6 +881,7 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
 
         # --- Extract images in camera order ---
         images = []
+        image_names = []
         for cam_name in self.camera_names:
             if cam_name not in obs:
                 raise KeyError(
@@ -809,6 +889,7 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
                     f"Available: {list(obs.keys())}"
                 )
             images.append(obs[cam_name])
+            image_names.append(cam_name)
 
         # --- Fisheye warping (match training augmentation) ---
         if self.cameras_to_warp:
@@ -827,6 +908,10 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         # --- Append conditioning image as 4th image ---
         if self.use_conditioning_image and self._conditioning_image is not None:
             images.append(self._conditioning_image)
+            image_names.append(f"conditioning:{self.point_prompt_camera}")
+
+        self._log_policy_input_views(obs, image_names, images)
+        self._save_policy_input_debug_montage(image_names, images)
 
         # --- Capture conditioning-frame points from first observation ---
         if self.use_point_prompts and self._conditioning_points is None:
@@ -1175,6 +1260,48 @@ class MolmoBotRBY1PickPnPDoorStyleFrozenBasePolicyConfig(
     use_conditioning_image: bool = True
 
 
+class MolmoBotRBY1PickPnPViewDebugFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP baseline with policy-input view debug artifacts."""
+
+    debug_policy_inputs: bool = True
+    debug_policy_input_max_saves: int = 6
+    debug_policy_input_dirname: str = "policy_input_views"
+
+
+class MolmoBotRBY1PickPnPLeftFocusedFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPViewDebugFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP using only head and left-wrist policy views."""
+
+    camera_names: list[str] = ["head_camera", "wrist_camera_l"]
+
+
+class MolmoBotRBY1PickPnPLeftWristFirstFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPViewDebugFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP with left wrist first, then head."""
+
+    camera_names: list[str] = ["wrist_camera_l", "head_camera"]
+
+
+class MolmoBotRBY1PickPnPLeftOnlyFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPViewDebugFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP diagnostic using only the left wrist camera."""
+
+    camera_names: list[str] = ["wrist_camera_l"]
+
+
+class MolmoBotRBY1PickPnPLeftFirstFullFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPViewDebugFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP with the training views reordered left-first."""
+
+    camera_names: list[str] = ["wrist_camera_l", "head_camera", "wrist_camera_r"]
+
+
 class MolmoBotRBY1PickPnPFrozenBaseEvalConfig(MolmoBotRBY1EvalConfig):
     """Eval config for RBY1 pick+pnp with frozen (locked) mobile base."""
 
@@ -1254,4 +1381,54 @@ class MolmoBotRBY1PickPnPDoorStyleFrozenBaseEvalConfig(
 
     policy_config: MolmoBotRBY1PickPnPDoorStyleFrozenBasePolicyConfig = (
         MolmoBotRBY1PickPnPDoorStyleFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPViewDebugFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick/pnp with policy-input view logging."""
+
+    policy_config: MolmoBotRBY1PickPnPViewDebugFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPViewDebugFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPLeftFocusedFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick/pnp using head + left wrist views."""
+
+    policy_config: MolmoBotRBY1PickPnPLeftFocusedFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPLeftFocusedFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPLeftWristFirstFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick/pnp using left wrist + head views."""
+
+    policy_config: MolmoBotRBY1PickPnPLeftWristFirstFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPLeftWristFirstFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPLeftOnlyFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick/pnp using only the left wrist view."""
+
+    policy_config: MolmoBotRBY1PickPnPLeftOnlyFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPLeftOnlyFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPLeftFirstFullFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick/pnp using left-first full views."""
+
+    policy_config: MolmoBotRBY1PickPnPLeftFirstFullFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPLeftFirstFullFrozenBasePolicyConfig()
     )
