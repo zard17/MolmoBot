@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -9,8 +10,9 @@ from PIL import Image, ImageDraw
 from molmo_spaces.configs.abstract_exp_config import MlSpacesExpConfig
 from molmo_spaces.configs.camera_configs import RBY1GoProD455CameraSystem
 from molmo_spaces.configs.robot_configs import FrankaRobotConfig, RBY1MConfig
+from molmo_spaces.configs.task_configs import PickTaskConfig
 from molmo_spaces.configs.policy_configs import BasePolicyConfig
-from molmo_spaces.policy.base_policy import InferencePolicy, StatefulPolicy
+from molmo_spaces.policy.base_policy import BasePolicy, InferencePolicy, StatefulPolicy
 from molmo_spaces.evaluation.configs.evaluation_configs import JsonBenchmarkEvalConfig
 
 logger = logging.getLogger(__name__)
@@ -1432,3 +1434,175 @@ class MolmoBotRBY1PickPnPLeftFirstFullFrozenBaseEvalConfig(
     policy_config: MolmoBotRBY1PickPnPLeftFirstFullFrozenBasePolicyConfig = (
         MolmoBotRBY1PickPnPLeftFirstFullFrozenBasePolicyConfig()
     )
+
+
+# ── Scripted RBY1 Pick Sanity Check ──────────────────────────────────────
+
+
+class RBY1ScriptedGraspSanityPolicy(BasePolicy):
+    """Replay fixed RBY1 joint waypoints to test grasp physics without CuRobo."""
+
+    def __init__(self, config, task_type_or_task=None) -> None:
+        super().__init__(config, None)
+        self.task_type = task_type_or_task
+        self.step_count = 0
+        self.current_phase = "not_started"
+        self.target_poses = {"grasp": np.eye(4)}
+        self._initial_qpos: dict[str, list[float]] = {}
+
+    def reset(self) -> None:
+        self.step_count = 0
+        self.current_phase = "open"
+        self._initial_qpos = {}
+        if self.task is None:
+            return
+        robot_view = self.task.env.current_robot.robot_view
+        for move_group in robot_view.move_group_ids():
+            self._initial_qpos[move_group] = (
+                robot_view.get_move_group(move_group).joint_pos.copy().tolist()
+            )
+
+    def _phase_for_step(self) -> str:
+        phase_steps = self.config.policy_config.phase_steps
+        cursor = 0
+        for phase in ("open", "approach", "grasp", "close", "lift", "hold"):
+            cursor += int(phase_steps.get(phase, 0))
+            if self.step_count < cursor:
+                return phase
+        return "done"
+
+    def _target_for_phase(self, phase: str) -> dict[str, list[float]]:
+        targets = self.config.policy_config.targets
+        if phase in ("open", "approach"):
+            return targets.get("approach", {})
+        if phase in ("grasp", "close"):
+            return targets.get("grasp", {})
+        return targets.get("lift", targets.get("grasp", {}))
+
+    def _gripper_command_for_phase(self, phase: str) -> float:
+        if phase in ("close", "lift", "hold", "done"):
+            return float(self.config.policy_config.close_gripper_command)
+        return float(self.config.policy_config.open_gripper_command)
+
+    def get_action(self, observation) -> dict[str, np.ndarray]:
+        if not self.config.policy_config.targets:
+            raise RuntimeError(
+                "RBY1 scripted grasp sanity policy requires waypoint targets. "
+                "Set RBY1_SCRIPTED_GRASP_CONFIG_JSON before running eval."
+            )
+
+        phase = self._phase_for_step()
+        self.current_phase = phase
+        target = self._target_for_phase(phase)
+        selected_arm = self.config.policy_config.selected_arm
+        other_arm = "right" if selected_arm == "left" else "left"
+
+        action: dict[str, np.ndarray] = {}
+        for move_group in ("base", "torso", f"{selected_arm}_arm"):
+            values = target.get(move_group) or self._initial_qpos.get(move_group)
+            if values is not None:
+                action[move_group] = np.asarray(values, dtype=np.float32)
+
+        other_arm_key = f"{other_arm}_arm"
+        if other_arm_key in self._initial_qpos:
+            action[other_arm_key] = np.asarray(
+                self._initial_qpos[other_arm_key], dtype=np.float32
+            )
+
+        gripper_value = self._gripper_command_for_phase(phase)
+        action[f"{selected_arm}_gripper"] = np.asarray([gripper_value], dtype=np.float32)
+        if f"{other_arm}_gripper" in self._initial_qpos:
+            action[f"{other_arm}_gripper"] = np.asarray(
+                [self.config.policy_config.open_gripper_command], dtype=np.float32
+            )
+
+        if phase == "done":
+            action["done"] = True
+        self.step_count += 1
+        return action
+
+    def get_info(self) -> dict:
+        return {
+            "task_type": self.task_type,
+            "phase": self.current_phase,
+            "step_count": self.step_count,
+        }
+
+    def get_phase(self) -> str:
+        return self.current_phase
+
+    def get_all_phases(self) -> dict[str, int]:
+        return {
+            "not_started": -1,
+            "open": 0,
+            "approach": 1,
+            "grasp": 2,
+            "close": 3,
+            "lift": 4,
+            "hold": 5,
+            "done": 6,
+        }
+
+
+class MolmoBotRBY1ScriptedGraspSanityPolicyConfig(BasePolicyConfig):
+    """CuRobo-free scripted RBY1 grasp sanity policy config."""
+
+    policy_cls: type = RBY1ScriptedGraspSanityPolicy
+    policy_type: str = "scripted"
+    checkpoint_path: str = ""
+    selected_arm: str = "left"
+    targets: dict[str, dict[str, list[float]]] = {}
+    phase_steps: dict[str, int] = {
+        "open": 8,
+        "approach": 40,
+        "grasp": 35,
+        "close": 25,
+        "lift": 90,
+        "hold": 40,
+    }
+    open_gripper_command: float = -100.0
+    close_gripper_command: float = 100.0
+
+    def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)
+        raw_config = os.environ.get("RBY1_SCRIPTED_GRASP_CONFIG_JSON")
+        if not raw_config:
+            return
+        payload = json.loads(raw_config)
+        for key in (
+            "selected_arm",
+            "targets",
+            "phase_steps",
+            "open_gripper_command",
+            "close_gripper_command",
+        ):
+            if key in payload:
+                object.__setattr__(self, key, payload[key])
+
+
+class MolmoBotRBY1ScriptedGraspSanityEvalConfig(JsonBenchmarkEvalConfig):
+    """JSON eval config for CuRobo-free scripted RBY1 pickability sanity checks."""
+
+    policy_config: MolmoBotRBY1ScriptedGraspSanityPolicyConfig = (
+        MolmoBotRBY1ScriptedGraspSanityPolicyConfig()
+    )
+    robot_config: RBY1MConfig = RBY1MConfig()
+    camera_config: RBY1GoProD455CameraSystem = RBY1GoProD455CameraSystem()
+    task_config: PickTaskConfig = PickTaskConfig(
+        pickup_obj_name="/Salt_Shaker_1",
+        pickup_obj_start_pose=[0.377, 0.278, 0.807, 0.7071068, 0.7071068, 0.0, 0.0],
+        pickup_obj_goal_pose=[0.377, 0.278, 1.007, 0.7071068, 0.7071068, 0.0, 0.0],
+        succ_pos_threshold=0.05,
+    )
+    policy_dt_ms: float = 100.0
+    ctrl_dt_ms: float = 20.0
+    sim_dt_ms: float = 4.0
+    task_horizon: int = 400
+
+    def model_post_init(self, __context) -> None:
+        super().model_post_init(__context)
+        self.robot_config.action_noise_config.enabled = False
+        self.robot_config.command_mode["base"] = "holo_joint_planar_position"
+        self.robot_config.command_mode["arm"] = "joint_position"
+        self.robot_config.command_mode["gripper"] = "joint_position"
+        self.robot_config.command_mode["torso"] = "joint_position"
