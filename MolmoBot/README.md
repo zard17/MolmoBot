@@ -317,19 +317,28 @@ The custom scene XML is mirrored under
 `$MLSPACES_ASSETS_DIR/scenes/rby1-custom/custom_scene.xml` at runtime so the
 MolmoSpaces scene loader accepts it as a normal scene asset.
 
+### Gripper Mapping
+
+RBY1 pick/pnp evals invert model gripper output before sending it to the
+simulator. The saved trajectory showed the model emitting about `-100` for the
+left gripper while the simulated fingers stayed open at roughly
+`[-0.05, 0.05]`. Inverting the pick/pnp gripper command maps that model-close
+signal to the actuator direction that moves the fingers toward closed
+`[0.0, 0.0]`.
+
 ### Latest Included Results
 
-The branch includes result videos from a completed one-episode 400-step run:
+The branch includes result videos from a completed one-episode 400-step run
+after the RBY1 pick/pnp gripper mapping fix:
 
-- `eval_output/rby1_freeze_test/default/MolmoBotRBY1PickPnPEvalConfig/20260414_233644/house_0/`
-- `eval_output/rby1_freeze_test/frozen_base/MolmoBotRBY1PickPnPFrozenBaseEvalConfig/20260414_234202/house_0/`
+- `eval_output/rby1_freeze_test/default/MolmoBotRBY1PickPnPEvalConfig/20260415_001457/house_0/`
+- `eval_output/rby1_freeze_test/frozen_base/MolmoBotRBY1PickPnPFrozenBaseEvalConfig/20260415_002027/house_0/`
 
-Both conditions ran to 400 steps and saved videos. Both reported `fail`. Video
-inspection shows the arm reaches toward the desk, but the salt shaker remains on
-the table. The saved grasp-state sensor reports no touching or holding for either
-gripper. The likely next fix is the RBY1 pick/pnp gripper action mapping: the
-policy emits large gripper commands while the RBY1 gripper joint convention is
-open at about `-0.05/+0.05` and closed at `0.0/0.0`.
+Both conditions ran to 400 steps and saved videos. Both reported `fail`. The
+saved trajectories confirm the left gripper command now closes the simulated
+fingers from about `0.10 m` inter-finger distance to near `0.0 m`, but the
+grasp-state sensor still reports no touching or holding. Video inspection shows
+the arm reaches near the desk, but the salt shaker remains on the table.
 
 ### Eval Configs
 

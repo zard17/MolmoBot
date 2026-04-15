@@ -705,6 +705,7 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         self.state_spec: dict[str, int] = getattr(pc, "state_spec", {})
         self.state_indices: dict[str, list[int]] = getattr(pc, "state_indices", {})
         self.use_conditioning_image: bool = getattr(pc, "use_conditioning_image", False)
+        self.invert_gripper_action: bool = getattr(pc, "invert_gripper_action", False)
         self._conditioning_image: np.ndarray | None = None
 
         super().__init__(config, task_type)
@@ -818,11 +819,14 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
                 dim = self.action_spec[group_name]
                 selected_action = pred_actions[t, start_idx : start_idx + dim]
                 if "gripper" in group_name and self.clamp_gripper:
-                    action[group_name] = np.where(
+                    group_action = np.where(
                         selected_action >= self.gripper_threshold, 100.0, -100.0
                     ).astype(selected_action.dtype)
                 else:
-                    action[group_name] = selected_action
+                    group_action = selected_action
+                if "gripper" in group_name and self.invert_gripper_action:
+                    group_action = -group_action
+                action[group_name] = group_action
                 start_idx += dim
             self.action_buffer.append(action)
 
@@ -868,6 +872,7 @@ class MolmoBotRBY1PickPnPPolicyConfig(MolmoBotRBY1PolicyConfig):
     """Policy config for MolmoBot RBY1 pick+pnp with torso, no points, no conditioning."""
 
     clamp_gripper: bool = False  # Disable gripper clamping for pick/pnp
+    invert_gripper_action: bool = True
 
     action_move_group_names: list[str] = [
         "base", "left_arm", "left_gripper", "right_arm", "right_gripper", "torso",
