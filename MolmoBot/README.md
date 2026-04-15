@@ -311,8 +311,8 @@ bash scripts/run_rby1_freeze_test.sh --checkpoint_path /path/to/checkpoint
 - `house_index`: `0`
 - pickup object: `/Salt_Shaker_1`
 - pickup poses: a small salt-shaker reach grid near the RBY1 left-arm approach
-  path, currently centered around table coordinates `x=0.45..0.52`,
-  `y=0.25..0.35`, `z=0.79`
+  path, currently centered around table coordinates `x=0.445..0.465`,
+  `y=0.25..0.30`, `z=0.79..0.805`
 - goal poses: same `x/y`, with `z=0.99`
 - debug exocentric camera: `exo_camera_1`
 
