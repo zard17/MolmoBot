@@ -68,10 +68,10 @@ RBY1_CAMERAS = [
     {
         "name": "exo_camera_1",
         "type": "exocentric",
-        "pos": [1.4, -0.8, 1.3],
-        "forward": [-0.58, 0.72, -0.38],
+        "pos": [1.35, 1.05, 1.35],
+        "forward": [-0.64, -0.64, -0.42],
         "up": [0.0, 0.0, 1.0],
-        "fov": 65.0,
+        "fov": 70.0,
         "record_depth": False,
     },
 ]

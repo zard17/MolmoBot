@@ -318,9 +318,9 @@ The custom scene XML is mirrored under
 `$MLSPACES_ASSETS_DIR/scenes/rby1-custom/custom_scene.xml` at runtime so the
 MolmoSpaces scene loader accepts it as a normal scene asset.
 
-`exo_camera_1` is a fixed third-person recording camera for visual debugging.
-It is not included in the RBY1 policy `camera_names`, so it does not change the
-model inputs.
+`exo_camera_1` is a fixed front-left third-person recording camera for visual
+debugging. It is not included in the RBY1 policy `camera_names`, so it does not
+change the model inputs.
 
 ### Gripper Mapping
 
