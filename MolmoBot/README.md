@@ -326,12 +326,13 @@ change the model inputs.
 
 ### Gripper Mapping
 
-RBY1 pick/pnp evals invert model gripper output before sending it to the
-simulator. The saved trajectory showed the model emitting about `-100` for the
-left gripper while the simulated fingers stayed open at roughly
-`[-0.05, 0.05]`. Inverting the pick/pnp gripper command maps that model-close
-signal to the actuator direction that moves the fingers toward closed
-`[0.0, 0.0]`.
+RBY1 pick/pnp evals clamp model gripper output before sending it to the
+simulator. The model action is trained in a `[0, 255]`-style convention, while
+the RBY1 simulator command uses large signed motor targets that saturate at the
+joint limits. Thresholding at `5.0` maps model-open values to `-100.0` and
+model-close values to `100.0`, which correspond to the simulator's open and
+closed directions respectively. Pick/pnp does not apply an extra gripper
+inversion.
 
 ### Latest Included Results
 
