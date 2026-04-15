@@ -653,6 +653,7 @@ class MolmoBotRBY1PolicyConfig(SynthVLARBY1PolicyConfig):
     # Gripper clamping: >= threshold → +100 (close), < threshold → -100 (open)
     clamp_gripper: bool = True
     gripper_threshold: float = 5.0
+    gripper_close_hysteresis_steps: int = 0
 
     # MolmoBot-specific features
     cameras_to_warp: list[str] = ["head_camera"]
@@ -690,6 +691,7 @@ MolmoBotRBY1DoorPolicyConfig = MolmoBotRBY1PolicyConfig
 @dataclass
 class MolmoBotRBY1MultitaskPolicyState(MolmoBotRBY1PolicyState):
     conditioning_image: np.ndarray | None = None
+    gripper_close_hysteresis_remaining: dict[str, int] | None = None
 
 
 class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
@@ -706,12 +708,17 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         self.state_indices: dict[str, list[int]] = getattr(pc, "state_indices", {})
         self.use_conditioning_image: bool = getattr(pc, "use_conditioning_image", False)
         self._conditioning_image: np.ndarray | None = None
+        self.gripper_close_hysteresis_steps: int = getattr(
+            pc, "gripper_close_hysteresis_steps", 0
+        )
+        self._gripper_close_hysteresis_remaining: dict[str, int] = {}
 
         super().__init__(config, task_type)
 
     def reset(self):
         super().reset()
         self._conditioning_image = None
+        self._gripper_close_hysteresis_remaining = {}
 
     def get_state(self):
         state = super().get_state()
@@ -721,11 +728,47 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
             step_count=state.step_count,
             conditioning_points=state.conditioning_points,
             conditioning_image=self._conditioning_image,
+            gripper_close_hysteresis_remaining=dict(
+                self._gripper_close_hysteresis_remaining
+            ),
         )
 
     def set_state(self, state: MolmoBotRBY1MultitaskPolicyState):
         super().set_state(state)
         self._conditioning_image = state.conditioning_image
+        self._gripper_close_hysteresis_remaining = (
+            dict(state.gripper_close_hysteresis_remaining)
+            if state.gripper_close_hysteresis_remaining is not None
+            else {}
+        )
+
+    def inference_model(self, model_input) -> dict[str, np.ndarray]:
+        action = super().inference_model(model_input)
+        return self._apply_gripper_close_hysteresis(action)
+
+    def _apply_gripper_close_hysteresis(
+        self, action: dict[str, np.ndarray]
+    ) -> dict[str, np.ndarray]:
+        if self.gripper_close_hysteresis_steps <= 0:
+            return action
+
+        adjusted_action = dict(action)
+        for group_name, group_action in action.items():
+            if "gripper" not in group_name:
+                continue
+
+            gripper_action = np.asarray(group_action)
+            close_commanded = bool(np.all(gripper_action >= 0.0))
+            remaining = self._gripper_close_hysteresis_remaining.get(group_name, 0)
+            if close_commanded:
+                remaining = self.gripper_close_hysteresis_steps
+            elif remaining > 0:
+                remaining -= 1
+                adjusted_action[group_name] = np.full_like(gripper_action, 100.0)
+
+            self._gripper_close_hysteresis_remaining[group_name] = remaining
+
+        return adjusted_action
 
     def _populate_action_buffer(self, observation) -> None:
         """Override to handle torso state extraction + conditioning image."""
@@ -869,6 +912,7 @@ class MolmoBotRBY1PickPnPPolicyConfig(MolmoBotRBY1PolicyConfig):
     """Policy config for MolmoBot RBY1 pick+pnp with torso, no points, no conditioning."""
 
     clamp_gripper: bool = True
+    gripper_close_hysteresis_steps: int = 8
     action_move_group_names: list[str] = [
         "base", "left_arm", "left_gripper", "right_arm", "right_gripper", "torso",
     ]

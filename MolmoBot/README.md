@@ -334,6 +334,11 @@ model-close values to `100.0`, which correspond to the simulator's open and
 closed directions respectively. Pick/pnp does not apply an extra gripper
 inversion.
 
+Pick/pnp also applies a short close-command hysteresis of 8 executed policy
+steps. Once the model predicts a close command, the policy keeps that gripper
+closed briefly so single-frame open predictions do not reopen the fingers at
+the closest approach.
+
 ### Latest Included Results
 
 The branch includes result videos from a completed one-episode 400-step run

@@ -32,6 +32,7 @@ def summarize_h5(path: Path) -> list[dict]:
             touches = []
             held = []
             commanded_left = []
+            close_steps = []
             for i in range(traj["obs/agent/qpos"].shape[0]):
                 qpos = decode_json_bytes(traj["obs/agent/qpos"][i])
                 grasp = decode_json_bytes(traj["obs/extra/grasp_state_pickup_obj"][i])
@@ -43,7 +44,23 @@ def summarize_h5(path: Path) -> list[dict]:
                     touches.append(bool(grasp["left_gripper"]["touching"]))
                     held.append(bool(grasp["left_gripper"]["held"]))
                 if action is not None and action.get("left_gripper") is not None:
-                    commanded_left.append(float(action["left_gripper"][0]))
+                    left_command = float(action["left_gripper"][0])
+                    commanded_left.append(left_command)
+                    if left_command > 0.0:
+                        close_steps.append(i)
+
+            close_windows = []
+            if close_steps:
+                window_start = close_steps[0]
+                previous = close_steps[0]
+                for step in close_steps[1:]:
+                    if step == previous + 1:
+                        previous = step
+                    else:
+                        close_windows.append((window_start, previous))
+                        window_start = step
+                        previous = step
+                close_windows.append((window_start, previous))
 
             rows.append(
                 {
@@ -60,6 +77,12 @@ def summarize_h5(path: Path) -> list[dict]:
                     "left_gripper_dist_final_m": left_distances[-1] if left_distances else None,
                     "left_cmd_min": min(commanded_left) if commanded_left else None,
                     "left_cmd_max": max(commanded_left) if commanded_left else None,
+                    "left_cmd_at_min_dist": commanded_left[min_step - 1]
+                    if 0 <= min_step - 1 < len(commanded_left)
+                    else None,
+                    "first_left_close_step": close_steps[0] if close_steps else None,
+                    "left_close_windows": close_windows,
+                    "tcp_obj_delta_at_min_m": (tcp[min_step] - obj[min_step]).tolist(),
                 }
             )
     return rows
@@ -84,13 +107,21 @@ def main() -> None:
 
     rows.sort(key=lambda row: row["min_tcp_obj_dist_m"])
     print(
-        "rank\ttraj\tmin_dist_m\tstep\ttouch\theld\tsuccess\tobj_delta_m\tleft_grip_min_m\tfile"
+        "rank\ttraj\tmin_dist_m\tstep\tdelta_xyz_m\tcmd_at_min\tfirst_close\t"
+        "close_windows\ttouch\theld\tsuccess\tobj_delta_m\tleft_grip_min_m\tfile"
     )
     for rank, row in enumerate(rows, start=1):
+        delta = ",".join(f"{value:.3f}" for value in row["tcp_obj_delta_at_min_m"])
+        windows = ",".join(
+            f"{start}-{end}" if start != end else str(start)
+            for start, end in row["left_close_windows"]
+        )
         print(
             f"{rank}\t{row['traj']}\t{row['min_tcp_obj_dist_m']:.4f}\t"
-            f"{row['min_dist_step']}\t{row['touch_any']}\t{row['held_any']}\t"
-            f"{row['success_any']}\t{row['obj_delta_m']:.4f}\t"
+            f"{row['min_dist_step']}\t{delta}\t{row['left_cmd_at_min_dist']}\t"
+            f"{row['first_left_close_step']}\t{windows}\t"
+            f"{row['touch_any']}\t{row['held_any']}\t{row['success_any']}\t"
+            f"{row['obj_delta_m']:.4f}\t"
             f"{row['left_gripper_dist_min_m']:.4f}\t{row['file']}"
         )
 
