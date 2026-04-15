@@ -173,7 +173,8 @@ def create_rby1_episode(episode_id, config):
             },
         },
         "task": {
-            "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+            "task_cls": "olmo.eval.rby1_debug_pick_task.PickTask",
+            "task_type": "pick",
             "robot_base_pose": ROBOT_BASE_POSE,
             "pickup_obj_name": config["object_body_name"],
             "pickup_obj_start_pose": config["pickup_pos"],
@@ -219,7 +220,7 @@ def main():
     )
     parser.add_argument(
         "--num_episodes", type=int, default=5,
-        help="Number of episodes to generate (max 5)",
+        help=f"Number of episodes to generate (max {len(EPISODE_CONFIGS)})",
     )
     args = parser.parse_args()
 

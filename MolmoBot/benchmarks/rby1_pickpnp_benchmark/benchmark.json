@@ -180,7 +180,8 @@
       }
     },
     "task": {
-      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "task_cls": "olmo.eval.rby1_debug_pick_task.PickTask",
+      "task_type": "pick",
       "robot_base_pose": [
         0.0,
         0.0,
@@ -399,7 +400,8 @@
       }
     },
     "task": {
-      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "task_cls": "olmo.eval.rby1_debug_pick_task.PickTask",
+      "task_type": "pick",
       "robot_base_pose": [
         0.0,
         0.0,
@@ -618,7 +620,8 @@
       }
     },
     "task": {
-      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "task_cls": "olmo.eval.rby1_debug_pick_task.PickTask",
+      "task_type": "pick",
       "robot_base_pose": [
         0.0,
         0.0,
@@ -837,7 +840,8 @@
       }
     },
     "task": {
-      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "task_cls": "olmo.eval.rby1_debug_pick_task.PickTask",
+      "task_type": "pick",
       "robot_base_pose": [
         0.0,
         0.0,
@@ -1056,7 +1060,8 @@
       }
     },
     "task": {
-      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "task_cls": "olmo.eval.rby1_debug_pick_task.PickTask",
+      "task_type": "pick",
       "robot_base_pose": [
         0.0,
         0.0,
@@ -1275,7 +1280,8 @@
       }
     },
     "task": {
-      "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
+      "task_cls": "olmo.eval.rby1_debug_pick_task.PickTask",
+      "task_type": "pick",
       "robot_base_pose": [
         0.0,
         0.0,

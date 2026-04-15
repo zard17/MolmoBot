@@ -302,6 +302,23 @@ bash scripts/run_rby1_freeze_test.sh --only frozen
 bash scripts/run_rby1_freeze_test.sh --checkpoint_path /path/to/checkpoint
 ```
 
+### Adaptive geometry search
+
+For the salt-shaker grasp debugging loop, run the adaptive geometry queue:
+
+```bash
+.venv/bin/python scripts/run_rby1_adaptive_variants.py \
+  --checkpoint_path ckpts/molmobot/MolmoBot-RBY1Multitask \
+  --task_horizon 300 \
+  --smoke_horizon 25 \
+  --max_parallel 2
+```
+
+The runner prioritizes frozen-base geometry variants, runs a 25-step smoke test
+before each 300-step full eval, confirms promising frozen-base variants with
+the default/base-active eval, and writes incremental reports under
+`eval_output/rby1_adaptive_geometry_search/`.
+
 ### Benchmark Details
 
 `generate_rby1_pickpnp_benchmark.py` creates
@@ -334,10 +351,10 @@ model-close values to `100.0`, which correspond to the simulator's open and
 closed directions respectively. Pick/pnp does not apply an extra gripper
 inversion.
 
-Pick/pnp also applies a short close-command hysteresis of 8 executed policy
-steps. Once the model predicts a close command, the policy keeps that gripper
-closed briefly so single-frame open predictions do not reopen the fingers at
-the closest approach.
+Pick/pnp also applies close-command hysteresis of 24 executed policy steps.
+Once the model predicts a close command, the policy keeps that gripper closed
+briefly so single-frame open predictions do not reopen the fingers at the
+closest approach.
 
 ### Latest Included Results
 

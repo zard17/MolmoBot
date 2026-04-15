@@ -1,4 +1,5 @@
 import logging
+import json
 from dataclasses import dataclass
 
 import numpy as np
@@ -692,6 +693,7 @@ MolmoBotRBY1DoorPolicyConfig = MolmoBotRBY1PolicyConfig
 class MolmoBotRBY1MultitaskPolicyState(MolmoBotRBY1PolicyState):
     conditioning_image: np.ndarray | None = None
     gripper_close_hysteresis_remaining: dict[str, int] | None = None
+    contact_force_close_remaining: dict[str, int] | None = None
 
 
 class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
@@ -712,6 +714,17 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
             pc, "gripper_close_hysteresis_steps", 0
         )
         self._gripper_close_hysteresis_remaining: dict[str, int] = {}
+        self.fixed_torso_height: float | None = getattr(pc, "fixed_torso_height", None)
+        self.close_on_finger_contact_steps: int = getattr(
+            pc, "close_on_finger_contact_steps", 0
+        )
+        self.freeze_motion_on_finger_contact: bool = getattr(
+            pc, "freeze_motion_on_finger_contact", False
+        )
+        self.open_until_finger_contact: bool = getattr(
+            pc, "open_until_finger_contact", False
+        )
+        self._contact_force_close_remaining: dict[str, int] = {}
 
         super().__init__(config, task_type)
 
@@ -719,6 +732,7 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         super().reset()
         self._conditioning_image = None
         self._gripper_close_hysteresis_remaining = {}
+        self._contact_force_close_remaining = {}
 
     def get_state(self):
         state = super().get_state()
@@ -731,6 +745,7 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
             gripper_close_hysteresis_remaining=dict(
                 self._gripper_close_hysteresis_remaining
             ),
+            contact_force_close_remaining=dict(self._contact_force_close_remaining),
         )
 
     def set_state(self, state: MolmoBotRBY1MultitaskPolicyState):
@@ -739,6 +754,11 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         self._gripper_close_hysteresis_remaining = (
             dict(state.gripper_close_hysteresis_remaining)
             if state.gripper_close_hysteresis_remaining is not None
+            else {}
+        )
+        self._contact_force_close_remaining = (
+            dict(state.contact_force_close_remaining)
+            if state.contact_force_close_remaining is not None
             else {}
         )
 
@@ -853,6 +873,7 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         )
 
         # --- Convert to list of action dicts ---
+        finger_contact_sides = self._finger_contact_sides(obs)
         self.action_buffer = []
         for t in range(pred_actions.shape[0]):
             action = {}
@@ -868,9 +889,72 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
                     group_action = selected_action
                 action[group_name] = group_action
                 start_idx += dim
+            if self.fixed_torso_height is not None and "torso" in action:
+                action["torso"] = np.full_like(
+                    np.asarray(action["torso"]),
+                    float(self.fixed_torso_height),
+                )
+            if self.close_on_finger_contact_steps > 0:
+                force_close_active = self._apply_contact_force_close(
+                    action, finger_contact_sides
+                )
+                if self.freeze_motion_on_finger_contact and force_close_active:
+                    self._freeze_relative_motion(action)
             self.action_buffer.append(action)
 
         self.buffer_index = 0
+
+    def _finger_contact_sides(self, obs: dict) -> set[str]:
+        task_info = obs.get("task_info")
+        if isinstance(task_info, bytes):
+            task_info = json.loads(task_info.decode("utf-8"))
+        elif isinstance(task_info, str):
+            task_info = json.loads(task_info)
+        if not isinstance(task_info, dict):
+            return set()
+
+        sides = set()
+        if task_info.get("left_finger_contact"):
+            sides.add("left")
+        if task_info.get("right_finger_contact"):
+            sides.add("right")
+        return sides
+
+    def _apply_contact_force_close(
+        self,
+        action: dict[str, np.ndarray],
+        finger_contact_sides: set[str],
+    ) -> bool:
+        force_close_active = False
+        for side in ("left", "right"):
+            group_name = f"{side}_gripper"
+            if group_name not in action:
+                continue
+
+            remaining = self._contact_force_close_remaining.get(group_name, 0)
+            if side in finger_contact_sides:
+                remaining = self.close_on_finger_contact_steps
+            elif remaining > 0:
+                remaining -= 1
+
+            if remaining > 0:
+                action[group_name] = np.full_like(
+                    np.asarray(action[group_name]),
+                    100.0,
+                )
+                force_close_active = True
+            elif self.open_until_finger_contact:
+                action[group_name] = np.full_like(
+                    np.asarray(action[group_name]),
+                    -100.0,
+                )
+            self._contact_force_close_remaining[group_name] = remaining
+        return force_close_active
+
+    def _freeze_relative_motion(self, action: dict[str, np.ndarray]) -> None:
+        for group_name in ("base", "left_arm", "right_arm"):
+            if group_name in action:
+                action[group_name] = np.zeros_like(np.asarray(action[group_name]))
 
 
 # ── Multitask Policy Configs ─────────────────────────────────────────────
@@ -912,7 +996,7 @@ class MolmoBotRBY1PickPnPPolicyConfig(MolmoBotRBY1PolicyConfig):
     """Policy config for MolmoBot RBY1 pick+pnp with torso, no points, no conditioning."""
 
     clamp_gripper: bool = True
-    gripper_close_hysteresis_steps: int = 8
+    gripper_close_hysteresis_steps: int = 24
     action_move_group_names: list[str] = [
         "base", "left_arm", "left_gripper", "right_arm", "right_gripper", "torso",
     ]
@@ -941,6 +1025,19 @@ class MolmoBotRBY1PickPnPPolicyConfig(MolmoBotRBY1PolicyConfig):
             object.__setattr__(self, "policy_cls", MolmoBotRBY1MultitaskPolicy)
 
 
+class MolmoBotRBY1PickPnPPointPromptPolicyConfig(MolmoBotRBY1PickPnPPolicyConfig):
+    """Pick+PnP diagnostic policy with object point prompts enabled."""
+
+    use_point_prompts: bool = True
+    max_conditioning_points: int = 1
+
+
+class MolmoBotRBY1PickPnPDoorStylePolicyConfig(MolmoBotRBY1PickPnPPointPromptPolicyConfig):
+    """Pick+PnP diagnostic policy using door/open-style visual conditioning."""
+
+    use_conditioning_image: bool = True
+
+
 # ── Multitask Eval Configs ───────────────────────────────────────────────
 
 
@@ -967,6 +1064,22 @@ class MolmoBotRBY1PickPnPEvalConfig(MolmoBotRBY1EvalConfig):
         super().model_post_init(__context)
         # Model outputs 1D torso action → use "height" mode (scalar → 6D joint mapping)
         self.robot_config.command_mode["torso"] = "height"
+
+
+class MolmoBotRBY1PickPnPPointPromptEvalConfig(MolmoBotRBY1PickPnPEvalConfig):
+    """Eval config for RBY1 pick+pnp with object point prompts enabled."""
+
+    policy_config: MolmoBotRBY1PickPnPPointPromptPolicyConfig = (
+        MolmoBotRBY1PickPnPPointPromptPolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPDoorStyleEvalConfig(MolmoBotRBY1PickPnPEvalConfig):
+    """Eval config for RBY1 pick+pnp with door/open-style conditioning."""
+
+    policy_config: MolmoBotRBY1PickPnPDoorStylePolicyConfig = (
+        MolmoBotRBY1PickPnPDoorStylePolicyConfig()
+    )
 
 
 # ── Frozen Base Variants (for mobile base ablation) ─────────────────────
@@ -1004,6 +1117,64 @@ class MolmoBotRBY1PickPnPFrozenBasePolicyConfig(MolmoBotRBY1PickPnPPolicyConfig)
             object.__setattr__(self, "policy_cls", MolmoBotRBY1PickPnPFrozenBasePolicy)
 
 
+class MolmoBotRBY1PickPnPPointPromptFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP diagnostic policy with object point prompts enabled."""
+
+    use_point_prompts: bool = True
+    max_conditioning_points: int = 1
+
+
+class MolmoBotRBY1PickPnPFixedTorsoFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP diagnostic policy with a fixed torso-height command."""
+
+    fixed_torso_height: float = 0.2
+
+
+class MolmoBotRBY1PickPnPContactHoldFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPFrozenBasePolicyConfig
+):
+    """Frozen-base diagnostic policy that closes and holds motion on finger contact."""
+
+    close_on_finger_contact_steps: int = 24
+    freeze_motion_on_finger_contact: bool = True
+
+
+class MolmoBotRBY1PickPnPContactGateFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPContactHoldFrozenBasePolicyConfig
+):
+    """Contact-hold diagnostic policy that keeps grippers open until contact."""
+
+    open_until_finger_contact: bool = True
+
+
+class MolmoBotRBY1PickPnPFixedTorsoContactCloseFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPFixedTorsoFrozenBasePolicyConfig
+):
+    """Fixed-torso diagnostic policy that closes the gripper on finger contact."""
+
+    close_on_finger_contact_steps: int = 24
+
+
+class MolmoBotRBY1PickPnPFixedTorsoContactHoldFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPFixedTorsoContactCloseFrozenBasePolicyConfig
+):
+    """Contact-close diagnostic policy that holds arm motion while closing."""
+
+    freeze_motion_on_finger_contact: bool = True
+
+
+class MolmoBotRBY1PickPnPDoorStyleFrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPPointPromptFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP diagnostic policy using door/open-style conditioning."""
+
+    use_conditioning_image: bool = True
+
+
 class MolmoBotRBY1PickPnPFrozenBaseEvalConfig(MolmoBotRBY1EvalConfig):
     """Eval config for RBY1 pick+pnp with frozen (locked) mobile base."""
 
@@ -1014,3 +1185,73 @@ class MolmoBotRBY1PickPnPFrozenBaseEvalConfig(MolmoBotRBY1EvalConfig):
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)
         self.robot_config.command_mode["torso"] = "height"
+
+
+class MolmoBotRBY1PickPnPPointPromptFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick+pnp with object point prompts enabled."""
+
+    policy_config: MolmoBotRBY1PickPnPPointPromptFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPPointPromptFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPFixedTorsoFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick+pnp with fixed torso height."""
+
+    policy_config: MolmoBotRBY1PickPnPFixedTorsoFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPFixedTorsoFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPContactHoldFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick+pnp with contact-close motion hold."""
+
+    policy_config: MolmoBotRBY1PickPnPContactHoldFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPContactHoldFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPContactGateFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for contact-gated gripper close and motion hold."""
+
+    policy_config: MolmoBotRBY1PickPnPContactGateFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPContactGateFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPFixedTorsoContactCloseFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for fixed-torso RBY1 pick+pnp with contact-triggered close."""
+
+    policy_config: MolmoBotRBY1PickPnPFixedTorsoContactCloseFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPFixedTorsoContactCloseFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPFixedTorsoContactHoldFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for fixed-torso RBY1 pick+pnp with contact-close motion hold."""
+
+    policy_config: MolmoBotRBY1PickPnPFixedTorsoContactHoldFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPFixedTorsoContactHoldFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPDoorStyleFrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick+pnp with door/open-style conditioning."""
+
+    policy_config: MolmoBotRBY1PickPnPDoorStyleFrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPDoorStyleFrozenBasePolicyConfig()
+    )
