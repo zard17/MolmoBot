@@ -42,6 +42,8 @@ class SynthVLAPolicy(InferencePolicy, StatefulPolicy):
         self.action_horizon = config.policy_config.action_horizon
         self.execute_horizon = config.policy_config.execute_horizon
         self.action_type = config.policy_config.action_type
+        self.clamp_gripper = getattr(config.policy_config, "clamp_gripper", True)
+        self.gripper_representation_count = getattr(config.policy_config, "gripper_representation_count", 1)
         self.relative_max_joint_delta = config.policy_config.relative_max_joint_delta
         if self.relative_max_joint_delta is not None:
             self.relative_max_joint_delta = np.array(self.relative_max_joint_delta)
@@ -200,25 +202,26 @@ class SynthVLAPolicy(InferencePolicy, StatefulPolicy):
         if self.step_count % 50 == 0:
             logger.info(f"[PROGRESS] Completed {self.step_count} steps")
 
-        if self.action_type == "joint_pos_rel":
-            predicted_deltas = action["arm"][:7]
+        if self.relative_max_joint_delta is not None and "arm" in action:
+            if self.action_type == "joint_pos_rel":
+                predicted_deltas = action["arm"][:7]
 
-            relative_scale = np.abs(predicted_deltas) / self.relative_max_joint_delta
-            if np.max(relative_scale) > 1:
-                scaled_predicted_deltas = predicted_deltas / np.max(relative_scale)
-                action["arm"][:7] = scaled_predicted_deltas
+                relative_scale = np.abs(predicted_deltas) / self.relative_max_joint_delta
+                if np.max(relative_scale) > 1:
+                    scaled_predicted_deltas = predicted_deltas / np.max(relative_scale)
+                    action["arm"][:7] = scaled_predicted_deltas
 
-        else:
-            # calculate joint deltas
-            obs = model_input[0] if isinstance(model_input, list) else model_input
-            predicted_deltas = action["arm"][:7] - obs["robot_state"]["qpos"]["arm"]
+            else:
+                # calculate joint deltas
+                obs = model_input[0] if isinstance(model_input, list) else model_input
+                predicted_deltas = action["arm"][:7] - obs["robot_state"]["qpos"]["arm"]
 
-            # Find the largest value
-            relative_scale = np.abs(predicted_deltas) / self.relative_max_joint_delta
+                # Find the largest value
+                relative_scale = np.abs(predicted_deltas) / self.relative_max_joint_delta
 
-            if np.max(relative_scale) > 1:
-                scaled_predicted_deltas = predicted_deltas / np.max(relative_scale)
-                action["arm"][:7] = obs["robot_state"]["qpos"]["arm"] + scaled_predicted_deltas
+                if np.max(relative_scale) > 1:
+                    scaled_predicted_deltas = predicted_deltas / np.max(relative_scale)
+                    action["arm"][:7] = obs["robot_state"]["qpos"]["arm"] + scaled_predicted_deltas
 
         return action
 
@@ -406,6 +409,9 @@ class SynthVLARBY1PolicyConfig(BasePolicyConfig):
 
     clamp_gripper: bool = True
     gripper_representation_count: int = 1
+
+    states_mode: str = "cross_attn"
+    relative_max_joint_delta: list[float] | None = None
 
     def model_post_init(self, __context) -> None:
         if self.policy_cls is None:

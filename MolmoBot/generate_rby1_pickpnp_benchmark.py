@@ -27,51 +27,98 @@ RBY1_INIT_QPOS = {
     "torso": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
 }
 
-# Robot placed at this world position in iTHOR house 321
-ROBOT_BASE_POSE = [2.0, 2.0, 0.0, 1.0, 0.0, 0.0, 0.0]  # x, y, z, qw, qx, qy, qz
+# Robot starts at the origin in the local custom desk scene.
+ROBOT_BASE_POSE = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]  # x, y, z, qw, qx, qy, qz
 
-# Object positions within arm reach (~0.3-0.6m from base)
-# All at table height (~1.0m), within static arm workspace
+# Robot-mounted camera specs required by JsonEvalTaskSampler.
+# These mirror the RBY1 MJCF camera names and mount poses.
+RBY1_CAMERAS = [
+    {
+        "name": "head_camera",
+        "type": "robot_mounted",
+        "reference_body_names": ["robot_0/link_head_2", "link_head_2"],
+        "camera_offset": [0.05, 0.0, 0.05],
+        "lookat_offset": [1.0, 0.0, 0.0],
+        "camera_quaternion": [0.5, 0.5, -0.5, -0.5],
+        "fov": 139.0,
+        "record_depth": False,
+    },
+    {
+        "name": "wrist_camera_l",
+        "type": "robot_mounted",
+        "reference_body_names": ["robot_0/link_left_arm_6", "link_left_arm_6"],
+        "camera_offset": [0.0, -0.1, -0.15],
+        "lookat_offset": [0.0, 0.0, -1.0],
+        "camera_quaternion": [0.0, 0.0, -0.258819, 0.965926],
+        "fov": 58.0,
+        "record_depth": True,
+    },
+    {
+        "name": "wrist_camera_r",
+        "type": "robot_mounted",
+        "reference_body_names": ["robot_0/link_right_arm_6", "link_right_arm_6"],
+        "camera_offset": [0.0, 0.1, -0.15],
+        "lookat_offset": [0.0, 0.0, -1.0],
+        "camera_quaternion": [0.965926, -0.258819, 0.0, 0.0],
+        "fov": 58.0,
+        "record_depth": True,
+    },
+]
+
+# Object positions within arm reach (~0.3-0.6m from base).
+# Salt_Shaker_1 is the Thor pickup object used by the working batch eval.
+SALT_SHAKER_UID = "Salt_Shaker_1"
+SALT_SHAKER_BODY_NAME = "/Salt_Shaker_1"
+SALT_SHAKER_PATH = (
+    "objects/thor/Kitchen Objects/SaltShaker/Prefabs/"
+    "Salt_Shaker_1/Salt_Shaker_1.xml"
+)
+
 EPISODE_CONFIGS = [
     {
-        "object_name": "book",
-        "object_uid": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
-        "object_path": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml",
-        "pickup_pos": [1.7, 2.0, 1.0, 0, 0, 0, 1],     # directly in front, ~0.3m
-        "goal_pos":   [1.7, 2.0, 1.2, 0, 0, 0, 1],      # lift 0.2m
-        "task_desc": "Pick up the book",
+        "object_name": "salt shaker",
+        "object_uid": SALT_SHAKER_UID,
+        "object_body_name": SALT_SHAKER_BODY_NAME,
+        "object_path": SALT_SHAKER_PATH,
+        "pickup_pos": [0.55, 0.25, 0.79, 0.7071068, 0.7071068, 0, 0],
+        "goal_pos":   [0.55, 0.25, 0.99, 0.7071068, 0.7071068, 0, 0],
+        "task_desc": "Pick up the salt shaker",
     },
     {
-        "object_name": "book",
-        "object_uid": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
-        "object_path": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml",
-        "pickup_pos": [1.65, 2.15, 1.0, 0, 0, 0, 1],    # front-left, ~0.38m
-        "goal_pos":   [1.65, 2.15, 1.2, 0, 0, 0, 1],
-        "task_desc": "Pick up the book",
+        "object_name": "salt shaker",
+        "object_uid": SALT_SHAKER_UID,
+        "object_body_name": SALT_SHAKER_BODY_NAME,
+        "object_path": SALT_SHAKER_PATH,
+        "pickup_pos": [0.45, 0.30, 0.79, 0.7071068, 0.7071068, 0, 0],
+        "goal_pos":   [0.45, 0.30, 0.99, 0.7071068, 0.7071068, 0, 0],
+        "task_desc": "Pick up the salt shaker",
     },
     {
-        "object_name": "book",
-        "object_uid": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
-        "object_path": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml",
-        "pickup_pos": [1.65, 1.85, 1.0, 0, 0, 0, 1],    # front-right, ~0.38m
-        "goal_pos":   [1.65, 1.85, 1.2, 0, 0, 0, 1],
-        "task_desc": "Pick up the book",
+        "object_name": "salt shaker",
+        "object_uid": SALT_SHAKER_UID,
+        "object_body_name": SALT_SHAKER_BODY_NAME,
+        "object_path": SALT_SHAKER_PATH,
+        "pickup_pos": [0.65, 0.15, 0.79, 0.7071068, 0.7071068, 0, 0],
+        "goal_pos":   [0.65, 0.15, 0.99, 0.7071068, 0.7071068, 0, 0],
+        "task_desc": "Pick up the salt shaker",
     },
     {
-        "object_name": "book",
-        "object_uid": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
-        "object_path": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml",
-        "pickup_pos": [1.6, 2.0, 1.0, 0, 0, 0, 1],      # further front, ~0.4m
-        "goal_pos":   [1.6, 2.0, 1.2, 0, 0, 0, 1],
-        "task_desc": "Pick up the book",
+        "object_name": "salt shaker",
+        "object_uid": SALT_SHAKER_UID,
+        "object_body_name": SALT_SHAKER_BODY_NAME,
+        "object_path": SALT_SHAKER_PATH,
+        "pickup_pos": [0.40, 0.20, 0.79, 0.7071068, 0.7071068, 0, 0],
+        "goal_pos":   [0.40, 0.20, 0.99, 0.7071068, 0.7071068, 0, 0],
+        "task_desc": "Pick up the salt shaker",
     },
     {
-        "object_name": "book",
-        "object_uid": "book_1d86bd20453959c2ac45aaec57a3e0b1_1_0_0",
-        "object_path": "objects/thor/RoboTHOR Objects/RoboTHOR_Assets_SmallObjects/Background_SmallObjects/Book/Prefabs/RoboTHOR_book_ai2_2_v/RoboTHOR_book_ai2_2_v.xml",
-        "pickup_pos": [1.55, 2.1, 1.0, 0, 0, 0, 1],     # front-left far, ~0.46m
-        "goal_pos":   [1.55, 2.1, 1.2, 0, 0, 0, 1],
-        "task_desc": "Pick up the book",
+        "object_name": "salt shaker",
+        "object_uid": SALT_SHAKER_UID,
+        "object_body_name": SALT_SHAKER_BODY_NAME,
+        "object_path": SALT_SHAKER_PATH,
+        "pickup_pos": [0.55, 0.40, 0.79, 0.7071068, 0.7071068, 0, 0],
+        "goal_pos":   [0.55, 0.40, 0.99, 0.7071068, 0.7071068, 0, 0],
+        "task_desc": "Pick up the salt shaker",
     },
 ]
 
@@ -87,8 +134,8 @@ def create_rby1_episode(episode_id, config):
             "source_data_date": "2026-04-15",
             "benchmark_created_date": "2026-04-15",
         },
-        "house_index": 321,
-        "scene_dataset": "ithor",
+        "house_index": 0,
+        "scene_dataset": "rby1-custom",
         "data_split": "val",
         "seed": episode_id,
         "robot": {
@@ -96,19 +143,19 @@ def create_rby1_episode(episode_id, config):
             "init_qpos": RBY1_INIT_QPOS,
         },
         "img_resolution": [1024, 576],
-        "cameras": [],  # RBY1GoProD455CameraSystem handles camera setup
+        "cameras": RBY1_CAMERAS,
         "scene_modifications": {
             "added_objects": {
-                config["object_uid"]: config["object_path"],
+                config["object_body_name"]: config["object_path"],
             },
             "object_poses": {
-                config["object_uid"]: config["pickup_pos"],
+                config["object_body_name"]: config["pickup_pos"],
             },
         },
         "task": {
             "task_cls": "molmo_spaces.tasks.pick_task.PickTask",
             "robot_base_pose": ROBOT_BASE_POSE,
-            "pickup_obj_name": config["object_uid"],
+            "pickup_obj_name": config["object_body_name"],
             "pickup_obj_start_pose": config["pickup_pos"],
             "pickup_obj_goal_pose": config["goal_pos"],
             "succ_pos_threshold": 0.05,
