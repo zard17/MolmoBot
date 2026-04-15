@@ -19,16 +19,21 @@ set -e
 cd /workspace/MolmoBot/MolmoBot
 
 # ── Environment ──────────────────────────────────────────────────────────
-export MUJOCO_GL=egl
-export PYOPENGL_PLATFORM=egl
+export MUJOCO_GL="${RBY1_MUJOCO_GL:-osmesa}"
+export PYOPENGL_PLATFORM="${RBY1_PYOPENGL_PLATFORM:-osmesa}"
+export MLSPACES_RENDER_DEVICE_ID="${MLSPACES_RENDER_DEVICE_ID:-none}"
 
-# Use /workspace for cache so it persists across pod restarts
+# Use /workspace for caches so they persist across pod restarts.
+# Keep the resource-manager symlink tree and backing cache as distinct paths:
+# molmospaces_resources rejects them if they resolve to the same directory.
 export MLSPACES_ASSETS_DIR=/workspace/.cache/molmo-spaces-resources
+export MLSPACES_CACHE_DIR=/workspace/.cache/molmo-spaces-cache
 mkdir -p "$MLSPACES_ASSETS_DIR"
+mkdir -p "$MLSPACES_CACHE_DIR"
 
-# Symlink ~/.cache for other tools that use it
+# Symlink ~/.cache for older resource links that point at the backing cache.
 mkdir -p ~/.cache
-ln -sfn /workspace/.cache/molmo-spaces-resources ~/.cache/molmo-spaces-resources
+ln -sfnT "$MLSPACES_CACHE_DIR" ~/.cache/molmo-spaces-resources
 
 source .venv/bin/activate
 
@@ -37,7 +42,7 @@ git pull
 
 # ── Parse arguments ──────────────────────────────────────────────────────
 TASK_HORIZON=400
-NUM_EPISODES=5
+NUM_EPISODES=1
 CHECKPOINT_PATH=""
 EXTRA_ARGS=""
 ONLY=""
@@ -97,8 +102,10 @@ except Exception as e:
 if [ -z "$CHECKPOINT_PATH" ]; then
     # Try common locations
     for candidate in \
+        ckpts/molmobot/MolmoBot-RBY1Multitask \
         /workspace/MolmoBot-RBY1-PickPnP \
         /workspace/MolmoBot-RBY1 \
+        ~/.cache/huggingface/hub/models--allenai--MolmoBot-RBY1Multitask/snapshots/*/ \
         ~/.cache/huggingface/hub/models--allenai--MolmoBot-RBY1-PickPnP/snapshots/*/; do
         if [ -d "$candidate" ]; then
             CHECKPOINT_PATH="$candidate"
@@ -108,8 +115,8 @@ if [ -z "$CHECKPOINT_PATH" ]; then
 fi
 
 if [ -z "$CHECKPOINT_PATH" ]; then
-    echo "ERROR: No checkpoint found. Provide --checkpoint_path or place checkpoint at /workspace/MolmoBot-RBY1-PickPnP"
-    exit 1
+    echo "Checkpoint not found. Downloading allenai/MolmoBot-RBY1Multitask..."
+    CHECKPOINT_PATH=$(python -c "from huggingface_hub import snapshot_download; print(snapshot_download('allenai/MolmoBot-RBY1Multitask', local_dir='ckpts/molmobot/MolmoBot-RBY1Multitask'))")
 fi
 echo "Checkpoint: $CHECKPOINT_PATH"
 
@@ -140,7 +147,7 @@ run_condition() {
     local out_dir="$3"
 
     echo "=== ${name} ==="
-    python -u run_eval_with_glfw.py \
+    python -u launch_scripts/run_eval.py \
         --checkpoint_path "$CHECKPOINT_PATH" \
         --benchmark_path "$BENCHMARK_PATH" \
         --eval_config_cls "$config_cls" \

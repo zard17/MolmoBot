@@ -263,7 +263,17 @@ Other released RBY1 eval configs are:
 
 ## RBY1 Frozen Base Test
 
-Compare RBY1 pick&place performance with the mobile base active (default) vs frozen (base actions zeroed). This tests how well the model performs when deployed without base movement.
+Compare RBY1 pick performance with the mobile base active (default) vs frozen
+(base actions zeroed). The generated benchmark uses a controlled custom desk
+scene and the Thor `Salt_Shaker_1` object, which is the same pickup object used
+in the working Franka batch evaluation path.
+
+The default script now runs one paired episode by default:
+
+- `default`: mobile base active
+- `frozen_base`: model still predicts base actions, but they are zeroed before execution
+- `task_horizon`: 400 steps
+- `num_episodes`: 1
 
 ### Quick start (RunPod)
 
@@ -271,13 +281,18 @@ Compare RBY1 pick&place performance with the mobile base active (default) vs fro
 bash scripts/run_rby1_freeze_test.sh
 ```
 
-The script handles asset downloads, benchmark generation, and runs both conditions automatically.
+The script handles asset downloads, benchmark generation, checkpoint discovery,
+and runs both conditions automatically. It uses OSMesa headless rendering by
+default, so `--use_filament` is not required for the standard headless pod run.
 
 ### Options
 
 ```bash
-# Shorter episodes / fewer episodes for quick test
-bash scripts/run_rby1_freeze_test.sh --task_horizon 200 --num_episodes 2
+# Short smoke test
+bash scripts/run_rby1_freeze_test.sh --task_horizon 1 --num_episodes 1 --only default
+
+# Shorter full episodes
+bash scripts/run_rby1_freeze_test.sh --task_horizon 200
 
 # Run only one condition
 bash scripts/run_rby1_freeze_test.sh --only default
@@ -285,27 +300,41 @@ bash scripts/run_rby1_freeze_test.sh --only frozen
 
 # Custom checkpoint
 bash scripts/run_rby1_freeze_test.sh --checkpoint_path /path/to/checkpoint
-
-# Use filament renderer
-bash scripts/run_rby1_freeze_test.sh --use_filament
 ```
 
-### Local run
+### Benchmark Details
 
-```bash
-# 1. Generate benchmark
-python generate_rby1_pickpnp_benchmark.py
+`generate_rby1_pickpnp_benchmark.py` creates
+`benchmarks/rby1_pickpnp_benchmark/benchmark.json` with:
 
-# 2. Run both conditions
-bash run_rby1_freeze_test.sh <checkpoint_path>
-```
+- `scene_dataset`: `rby1-custom`
+- `house_index`: `0`
+- pickup object: `/Salt_Shaker_1`
+- pickup pose: `[0.55, 0.25, 0.79, 0.7071068, 0.7071068, 0, 0]`
+- goal pose: `[0.55, 0.25, 0.99, 0.7071068, 0.7071068, 0, 0]`
 
-Results are saved to `eval_output/rby1_freeze_test/{default,frozen_base}/`.
+The custom scene XML is mirrored under
+`$MLSPACES_ASSETS_DIR/scenes/rby1-custom/custom_scene.xml` at runtime so the
+MolmoSpaces scene loader accepts it as a normal scene asset.
 
-### Eval configs
+### Latest Included Results
 
-- `MolmoBotRBY1PickPnPEvalConfig` — default (base active)
-- `MolmoBotRBY1PickPnPFrozenBaseEvalConfig` — frozen (base actions zeroed, model still predicts all actions)
+The branch includes result videos from a completed one-episode 400-step run:
+
+- `eval_output/rby1_freeze_test/default/MolmoBotRBY1PickPnPEvalConfig/20260414_233644/house_0/`
+- `eval_output/rby1_freeze_test/frozen_base/MolmoBotRBY1PickPnPFrozenBaseEvalConfig/20260414_234202/house_0/`
+
+Both conditions ran to 400 steps and saved videos. Both reported `fail`. Video
+inspection shows the arm reaches toward the desk, but the salt shaker remains on
+the table. The saved grasp-state sensor reports no touching or holding for either
+gripper. The likely next fix is the RBY1 pick/pnp gripper action mapping: the
+policy emits large gripper commands while the RBY1 gripper joint convention is
+open at about `-0.05/+0.05` and closed at `0.0/0.0`.
+
+### Eval Configs
+
+- `MolmoBotRBY1PickPnPEvalConfig`: default, base active
+- `MolmoBotRBY1PickPnPFrozenBaseEvalConfig`: frozen base, base actions zeroed
 
 # Batch Evaluation (Franka)
 
