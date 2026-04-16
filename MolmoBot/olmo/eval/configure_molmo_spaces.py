@@ -1456,6 +1456,24 @@ class RBY1ScriptedGraspSanityPolicy(BasePolicy):
         self._initial_qpos = {}
         if self.task is None:
             return
+
+        # Boost actuator gains if requested (for IK validation).
+        # The default kp=4000 can't hold non-equilibrium positions against gravity.
+        gain_multiplier = getattr(self.config.policy_config, "gain_multiplier", 1.0)
+        if gain_multiplier != 1.0:
+            import mujoco as _mj
+
+            model = self.task.env.mj_model
+            boosted = 0
+            for i in range(model.nu):
+                name = _mj.mj_id2name(model, _mj.mjtObj.mjOBJ_ACTUATOR, i)
+                if name and ("arm" in name or "link" in name):
+                    model.actuator_gainprm[i, 0] *= gain_multiplier
+                    model.actuator_biasprm[i, 1] *= gain_multiplier
+                    model.actuator_biasprm[i, 2] *= gain_multiplier
+                    boosted += 1
+            print(f"[GAIN BOOST] Boosted {boosted} actuators by {gain_multiplier}x")
+
         robot_view = self.task.env.current_robot.robot_view
         for move_group in robot_view.move_group_ids():
             self._initial_qpos[move_group] = (
@@ -1562,6 +1580,7 @@ class MolmoBotRBY1ScriptedGraspSanityPolicyConfig(BasePolicyConfig):
     }
     open_gripper_command: float = -100.0
     close_gripper_command: float = 100.0
+    gain_multiplier: float = 1.0  # Multiply arm/torso actuator gains for IK validation
 
     def model_post_init(self, __context) -> None:
         super().model_post_init(__context)
@@ -1575,6 +1594,7 @@ class MolmoBotRBY1ScriptedGraspSanityPolicyConfig(BasePolicyConfig):
             "phase_steps",
             "open_gripper_command",
             "close_gripper_command",
+            "gain_multiplier",
         ):
             if key in payload:
                 object.__setattr__(self, key, payload[key])
@@ -1606,3 +1626,7 @@ class MolmoBotRBY1ScriptedGraspSanityEvalConfig(JsonBenchmarkEvalConfig):
         self.robot_config.command_mode["arm"] = "joint_position"
         self.robot_config.command_mode["gripper"] = "joint_position"
         self.robot_config.command_mode["torso"] = "joint_position"
+        # Disable sim settling when gain boost is used, so gains are applied
+        # before the robot settles. The policy reset() will apply gain boost.
+        if self.policy_config.gain_multiplier != 1.0:
+            self.task_sampler_config.sim_settle_timesteps = 0
