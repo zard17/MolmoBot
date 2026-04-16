@@ -1232,6 +1232,14 @@ class MolmoBotRBY1PickPnPFixedTorsoFrozenBasePolicyConfig(
     fixed_torso_height: float = 0.2
 
 
+class MolmoBotRBY1PickPnPFixedTorso050FrozenBasePolicyConfig(
+    MolmoBotRBY1PickPnPFrozenBasePolicyConfig
+):
+    """Frozen-base Pick+PnP with torso height=0.50 (IK-validated reachable height)."""
+
+    fixed_torso_height: float = 0.50
+
+
 class MolmoBotRBY1PickPnPContactHoldFrozenBasePolicyConfig(
     MolmoBotRBY1PickPnPFrozenBasePolicyConfig
 ):
@@ -1344,6 +1352,21 @@ class MolmoBotRBY1PickPnPFixedTorsoFrozenBaseEvalConfig(
 
     policy_config: MolmoBotRBY1PickPnPFixedTorsoFrozenBasePolicyConfig = (
         MolmoBotRBY1PickPnPFixedTorsoFrozenBasePolicyConfig()
+    )
+
+
+class MolmoBotRBY1PickPnPFixedTorso050FrozenBaseEvalConfig(
+    MolmoBotRBY1PickPnPFrozenBaseEvalConfig
+):
+    """Eval config for frozen-base RBY1 pick+pnp with torso height=0.50.
+
+    IK validation showed that at height=0.50-0.60, the arm can reach the
+    salt shaker. The default policy outputs zero torso height, placing the
+    object outside the arm-only workspace.
+    """
+
+    policy_config: MolmoBotRBY1PickPnPFixedTorso050FrozenBasePolicyConfig = (
+        MolmoBotRBY1PickPnPFixedTorso050FrozenBasePolicyConfig()
     )
 
 
