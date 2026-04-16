@@ -21,7 +21,7 @@
         </default>
       </default>
       <default class="__DYNAMIC_MJT__">
-        <geom conaffinity="15" group="4" friction="0.9 0.9 0.001" solref="0.025 1" solimp="0.998 0.998 0.001" density="500"/>
+        <geom conaffinity="15" group="4" friction="4.5 4.5 0.005" solref="0.025 1" solimp="0.998 0.998 0.001" density="500"/>
       </default>
       <default class="__ARTICULABLE_DYNAMIC_MJT__">
         <geom contype="0" conaffinity="7" group="4" friction="0.9 0.9 0.001" solref="0.025 1" solimp="0.998 0.998 0.001" density="500"/>

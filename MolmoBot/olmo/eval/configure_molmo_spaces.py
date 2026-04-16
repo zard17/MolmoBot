@@ -749,6 +749,16 @@ class MolmoBotRBY1MultitaskPolicy(MolmoBotRBY1DoorOpeningPolicy):
         self._debug_policy_input_save_count = 0
         self._logged_policy_input_views = False
 
+        # Apply friction multiplier for pick tasks (default 0.9 is too low)
+        friction_mult = getattr(self.config.policy_config, "friction_multiplier", 1.0)
+        if friction_mult != 1.0 and not getattr(self, "_friction_applied", False):
+            if self.task is not None:
+                model = self.task.env.mj_model
+                for i in range(model.ngeom):
+                    model.geom_friction[i, 0] *= friction_mult
+                    model.geom_friction[i, 1] *= friction_mult
+                self._friction_applied = True
+
     def get_state(self):
         state = super().get_state()
         return MolmoBotRBY1MultitaskPolicyState(
@@ -1084,6 +1094,7 @@ class MolmoBotRBY1PickPnPPolicyConfig(MolmoBotRBY1PolicyConfig):
 
     clamp_gripper: bool = True
     gripper_close_hysteresis_steps: int = 24
+    friction_multiplier: float = 5.0  # Boost all geom friction for stable grasping
     action_move_group_names: list[str] = [
         "base", "left_arm", "left_gripper", "right_arm", "right_gripper", "torso",
     ]

@@ -94,6 +94,14 @@ def assemble_scene() -> mujoco.MjModel:
 
     print("  Compiling model...")
     model = spec.compile()
+
+    # Boost friction on ALL geoms (both object and finger surfaces).
+    # Default 0.9 is too low for stable grasping with the RBY1 parallel gripper.
+    FRICTION_MULT = 5.0
+    for i in range(model.ngeom):
+        model.geom_friction[i, 0] *= FRICTION_MULT  # sliding
+        model.geom_friction[i, 1] *= FRICTION_MULT  # torsional
+
     print(f"  Model: {model.nbody} bodies, {model.njnt} joints, {model.nu} actuators")
     return model
 
