@@ -390,6 +390,91 @@ the salt shaker.
 - `MolmoBotRBY1PickPnPEvalConfig`: default, base active
 - `MolmoBotRBY1PickPnPFrozenBaseEvalConfig`: frozen base, base actions zeroed
 
+### IK Pick Validation (no GPU required)
+
+**Why this exists:** The frozen-base test above showed the policy reaches the
+salt shaker (TCP within ~7mm) but never grasps it (0% success across 38 commits
+of debugging). The IK validation was created to answer: is the failure caused by
+the policy, the simulator physics, or the gripper geometry?
+
+By computing the mathematically correct grasp pose via IK and executing it with
+direct joint control (bypassing the learned policy), we isolate the physics from
+the policy. If the IK grasp succeeds, the physics work and the problem is the
+policy. If it fails, the physics/scene need fixing first.
+
+**Result:** The IK grasp succeeds at 5x friction, confirming the physics are
+sound. The policy's failure is caused by two issues: (1) insufficient friction
+at default settings, now fixed, and (2) the salt shaker being outside the
+arm-only workspace, requiring torso movement that the policy hasn't learned.
+
+Scripts (no GPU needed, runs on Mac):
+
+```bash
+# Full-scene direct-qpos pick test (assembles robot + desk + salt shaker)
+.venv/bin/python scripts/run_rby1_direct_scene_pick.py
+
+# Orientation + friction sweep (finds which orientations achieve lift)
+.venv/bin/python scripts/run_rby1_grasp_sweep.py
+
+# Launch MuJoCo viewer after pick attempt
+.venv/bin/python scripts/run_rby1_direct_scene_pick.py --viewer
+```
+
+**Key finding:** The salt shaker is successfully lifted at 5x friction with
+orientations 0/45/75/90 deg. Default friction (0.9) only pushes the object.
+The eval config now applies 5x friction automatically via
+`MolmoBotRBY1PickPnPPolicyConfig.friction_multiplier`.
+
+See `RBY1_IK_PICK_VALIDATION_SUMMARY.md` for the full investigation.
+
+### Verify Friction Fix on GPU
+
+The friction fix (`friction_multiplier=5.0`) is applied automatically in the
+eval pipeline via `MolmoBotRBY1MultitaskPolicy.reset()`. To verify end-to-end
+with the real policy, run on a machine with a CUDA GPU:
+
+```bash
+cd <code_path>/MolmoBot/MolmoBot
+. .venv/bin/activate
+uv sync --extra eval
+
+export MUJOCO_GL=egl
+export PYOPENGL_PLATFORM=egl
+export JAX_PLATFORMS=cpu
+
+# Download checkpoint (if not cached)
+python -c "from huggingface_hub import snapshot_download; \
+  snapshot_download('allenai/MolmoBot-RBY1Multitask', \
+  local_dir='ckpts/molmobot/MolmoBot-RBY1Multitask')"
+
+# Run frozen-base eval (1 episode, 400 steps)
+python launch_scripts/run_eval.py \
+  --checkpoint_path ckpts/molmobot/MolmoBot-RBY1Multitask \
+  --benchmark_path benchmarks/rby1_pickpnp_benchmark \
+  --eval_config_cls olmo.eval.configure_molmo_spaces:MolmoBotRBY1PickPnPFrozenBaseEvalConfig \
+  --task_horizon 400 \
+  --output_dir eval_output/rby1_friction_verify \
+  --num_workers 1
+
+# Summarize results
+python scripts/summarize_rby1_eval.py eval_output/rby1_friction_verify
+```
+
+**What to check:** Compare `left_finger_midpoint_obj_dist_min_m` and
+`obj_delta_m` against previous runs (without friction fix). The friction fix
+addresses the object-slides-out-of-grasp issue but does NOT fix the 6-7cm
+lateral finger miss caused by the torso workspace limitation.
+
+### Known Remaining Blockers
+
+1. **Torso workspace**: The salt shaker is outside the arm-only reachable
+   workspace (IK fails with torso locked at zero). The policy never uses the
+   torso (stays at zero), so the arm cannot reach the correct grasp pose.
+2. **Torso controller**: The MuJoCo torso PD gains (kp=4000) cannot maintain
+   non-equilibrium positions against gravity, even at 100x boost.
+3. **Friction**: Fixed (5x boost applied automatically). Default 0.9 was
+   insufficient for the RBY1 parallel gripper on the salt shaker box collider.
+
 # Batch Evaluation (Franka)
 
 Run batch evaluation across multiple object combinations and scene types for Franka:
